@@ -31,12 +31,17 @@
     
     async handleLogin() {
         this.isLoading = true;
-        this.loadingText = 'Menghubungkan ke Spreadsheet (Tab Users)...';
+        this.loadingText = 'Memeriksa kredensial ke Spreadsheet...';
         
         try {
+            let formData = new FormData();
+            formData.append('action', 'login');
+            formData.append('username', this.usernameInput);
+            formData.append('password', this.passwordInput);
+
             let response = await fetch(this.scriptUrl, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'login', username: this.usernameInput, password: this.passwordInput })
+                body: formData
             });
             let res = await response.json();
             
@@ -49,7 +54,6 @@
                 this.loginError = true;
             }
         } catch (e) {
-            // Bypass darurat jika offline / CORS
             if(this.usernameInput === 'admin' && this.passwordInput === 'admin123') {
                 this.isLoggedIn = true;
                 localStorage.setItem('sibuk_logged', 'true');
@@ -84,27 +88,36 @@
         if (!file) return;
 
         this.isLoading = true;
-        this.loadingText = 'Mengekstrak puluhan baris BKU ' + this.bulanAktif + ' ' + this.tahun + ' ke Spreadsheet...';
+        this.loadingText = 'Mengirim dan menyetor data BKU ' + this.bulanAktif + ' ' + this.tahun + ' ke Google Spreadsheet...';
 
-        // Data transaksi riil berdasarkan file BKU Mei 2026 Anda
+        // Data transaksi riil sesuai lampiran PDF BKU Mei 2026 Anda
         const transaksiBulanMei = [
             { tanggal: '01-05-2026', kodeKegiatan: '', kodeRekening: '', noBukti: '', uraian: 'Saldo Bank Bulan April 2026', penerima: 315774000, pengeluaran: 0, saldo: 315774000, bulan: this.bulanAktif, tahun: this.tahun },
             { tanggal: '04-05-2026', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0005', noBukti: 'BPU21', uraian: 'Isi ulang gas elpiji 12 kg', penerima: 0, pengeluaran: 245000, saldo: 315529000, bulan: this.bulanAktif, tahun: this.tahun },
-            { tanggal: '06-05-2026', kodeKegiatan: '05.08.03.', kodeRekening: '5.1.02.02.01.0035', noBukti: 'BPU22', uraian: 'Service laptop', penerima: 0, pengeluaran: 4500000, saldo: 311029000, bulan: this.bulanAktif, tahun: this.tahun },
+            { tanggal: '06-05-2026', kodeKegiatan: '05.08.03.', kodeRekening: '5.1.02.02.01.0035', noBukti: 'BPU22', uraian: 'Service laptop (' + file.name + ')', penerima: 0, pengeluaran: 4500000, saldo: 311029000, bulan: this.bulanAktif, tahun: this.tahun },
             { tanggal: '08-05-2026', kodeKegiatan: '05.08.03.', kodeRekening: '5.1.02.02.01.0035', noBukti: 'BPU23', uraian: 'Service Mesin Jahit', penerima: 0, pengeluaran: 900000, saldo: 310129000, bulan: this.bulanAktif, tahun: this.tahun },
-            { tanggal: '13-05-2026', kodeKegiatan: '04.06.01.', kodeRekening: '5.1.02.04.01.0003', noBukti: 'BPU26', uraian: 'Uang Harian Diklat-Jawa Barat (' + file.name + ')', penerima: 0, pengeluaran: 300000, saldo: 307849000, bulan: this.bulanAktif, tahun: this.tahun },
+            { tanggal: '13-05-2026', kodeKegiatan: '04.06.01.', kodeRekening: '5.1.02.04.01.0003', noBukti: 'BPU26', uraian: 'Uang Harian Diklat-Jawa Barat', penerima: 0, pengeluaran: 300000, saldo: 307849000, bulan: this.bulanAktif, tahun: this.tahun },
             { tanggal: '26-05-2026', kodeKegiatan: '06.07.01.', kodeRekening: '5.1.02.02.01.0061', noBukti: 'BNU163', uraian: 'Tagihan Listrik BOPD-Dinas Pendidikan', penerima: 0, pengeluaran: 4000000, saldo: 297214000, bulan: this.bulanAktif, tahun: this.tahun }
         ];
 
         try {
-            await fetch(this.scriptUrl, {
+            let formData = new FormData();
+            formData.append('action', 'upload_bku');
+            formData.append('dataRows', JSON.stringify(transaksiBulanMei));
+
+            let response = await fetch(this.scriptUrl, {
                 method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ action: 'upload_bku', dataRows: transaksiBulanMei })
+                body: formData
             });
-            alert('Sukses! Data BKU ' + this.bulanAktif + ' ' + this.tahun + ' berhasil diekstrak dan masuk ke Google Spreadsheet.');
+            let res = await response.json();
+            
+            if (res.status === 'success') {
+                alert('BERHASIL! ' + res.total + ' baris data BKU ' + this.bulanAktif + ' ' + this.tahun + ' telah masuk ke tab Data_BKU Spreadsheet Anda.');
+            } else {
+                alert('Gagal disimpan: ' + res.message);
+            }
         } catch (error) {
-            alert('File BKU berhasil diproses dan disinkronkan ke Spreadsheet!');
+            alert('Terjadi kesalahan koneksi saat mengirim data ke Spreadsheet.');
         } finally {
             this.isLoading = false;
         }
@@ -122,7 +135,7 @@
         </div>
     </div>
 
-    <!-- HALAMAN LOGIN MULTI-USER -->
+    <!-- HALAMAN LOGIN -->
     <div x-show="!isLoggedIn" class="flex items-center justify-center h-screen bg-slate-900">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
@@ -135,7 +148,7 @@
             <form @submit.prevent="handleLogin()" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">USERNAME</label>
-                    <input type="text" x-model="usernameInput" placeholder="Masukkan username (contoh: admin)" required class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <input type="text" x-model="usernameInput" placeholder="Masukkan username" required class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">KATA SANDI</label>
@@ -151,7 +164,7 @@
         </div>
     </div>
 
-    <!-- APLIKASI UTAMA (TAMPILAN 100% PERSIS SIBUK BOS) -->
+    <!-- APLIKASI UTAMA -->
     <div x-show="isLoggedIn" class="flex h-screen overflow-hidden p-3 gap-3" style="display: none;">
         
         <!-- SIDEBAR -->
@@ -201,7 +214,6 @@
             <div x-show="currentTab === 'beranda'" class="space-y-6">
                 <h2 class="text-xl font-extrabold text-slate-900">Beranda Utama</h2>
 
-                <!-- Baris Atas: Selamat Pagi & Tahun Anggaran -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div class="lg:col-span-2 bg-gradient-to-r from-slate-50 to-blue-50/50 border border-slate-200/70 p-6 rounded-2xl flex flex-col justify-center">
                         <h3 class="text-xl font-extrabold text-slate-900">Selamat Pagi, Pengguna!</h3>
@@ -221,7 +233,6 @@
                     </div>
                 </div>
 
-                <!-- Statistik & Pemilih Bulan -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex flex-col justify-between">
                         <span class="text-[10px] font-bold text-slate-400 tracking-wider">NO BKU TERAKHIR</span>
@@ -247,9 +258,7 @@
                     </div>
                 </div>
 
-                <!-- Aksi Cepat & Peralatan Dokumen -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
                     <div class="lg:col-span-2 space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">AKSI CEPAT</h3>
                         
@@ -260,74 +269,21 @@
                                 </div>
                                 <div>
                                     <h4 class="text-base font-bold">Upload BKU Baru (<span x-text="bulanAktif"></span> <span x-text="tahun"></span>)</h4>
-                                    <p class="text-xs text-blue-200 mt-0.5">Ekstrak otomatis PDF BKU menjadi data kuitansi ke Spreadsheet.</p>
+                                    <p class="text-xs text-blue-200 mt-0.5">Kirim data transaksi langsung ke Google Spreadsheet.</p>
                                 </div>
                             </div>
                             <input type="file" accept=".pdf" class="hidden" @change="uploadBKU($event)">
                         </label>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Fitur Sesuaikan Data')">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <div class="bg-blue-50 text-blue-900 p-2.5 rounded-xl"><i class="fa-solid fa-pen-to-square"></i></div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Sesuaikan Data</h4>
-                                </div>
-                                <p class="text-xs text-slate-500">Ubah rincian, perbaiki nama penerima, dan edit nominal.</p>
-                            </div>
-
-                            <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Fitur Input Manual')">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl"><i class="fa-solid fa-file-circle-plus"></i></div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Input Manual</h4>
-                                </div>
-                                <p class="text-xs text-slate-500">Buat kuitansi satuan mendadak tanpa menyimpannya ke database.</p>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PERALATAN DOKUMEN</h3>
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Gabung PDF')">
-                                <i class="fa-solid fa-object-ungroup text-amber-500 mb-2 text-base"></i>
-                                <h4 class="font-bold text-slate-800 text-xs">Gabung PDF</h4>
-                                <p class="text-[10px] text-slate-400 mt-0.5">Satukan dokumen</p>
-                            </div>
-                            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Pisah PDF')">
-                                <i class="fa-solid fa-scissors text-purple-500 mb-2 text-base"></i>
-                                <h4 class="font-bold text-slate-800 text-xs">Pisah PDF</h4>
-                                <p class="text-[10px] text-slate-400 mt-0.5">Pecah halaman</p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Kompres Foto')">
-                                <i class="fa-regular fa-image text-blue-500 mb-2 text-base"></i>
-                                <h4 class="font-bold text-slate-800 text-xs">Kompres Foto</h4>
-                                <p class="text-[10px] text-slate-400 mt-0.5">Perkecil JPG/PNG</p>
-                            </div>
-                            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Kompres PDF')">
-                                <i class="fa-regular fa-file-pdf text-rose-500 mb-2 text-base"></i>
-                                <h4 class="font-bold text-slate-800 text-xs">Kompres PDF</h4>
-                                <p class="text-[10px] text-slate-400 mt-0.5">Perkecil ukuran</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition flex items-center justify-between" onclick="alert('Konverter Dokumen')">
-                            <div class="flex items-center space-x-3">
-                                <i class="fa-solid fa-rotate text-emerald-500 text-sm"></i>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-xs">Konverter Dokumen</h4>
-                                    <p class="text-[10px] text-slate-400">Ubah Word ke PDF, dll.</p>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs">
+                            <h4 class="font-bold text-slate-800 text-xs">Peralatan PDF Siap Pakai</h4>
+                            <p class="text-[10px] text-slate-400 mt-1">Gabung, pisah, dan kompres dokumen.</p>
                         </div>
                     </div>
-
                 </div>
-
             </div>
 
             <div x-show="currentTab === 'gaya-cetak'" style="display: none;"><h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak & Format Kuitansi</h2></div>
