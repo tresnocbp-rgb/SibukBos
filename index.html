@@ -142,45 +142,70 @@
     },
 
 cetakKuitansiManual() {
-    if(!this.manualKuitansi.noBukti || !this.manualKuitansi.nominal) {
-        alert('Mohon isi No. Bukti dan Nominal terlebih dahulu!');
-        return;
-    }
-    
-    let noBukti = this.manualKuitansi.noBukti;
-    let tanggal = this.manualKuitansi.tanggal || '-';
-    let nominal = Number(this.manualKuitansi.nominal).toLocaleString('id-ID');
-    let uraian = this.manualKuitansi.uraian || '-';
-    let penerima = this.manualKuitansi.penerima || '-';
-    let tglCetak = new Date().toLocaleDateString('id-ID');
+        if(!this.manualKuitansi.noBukti || !this.manualKuitansi.nominal) {
+            alert('Mohon isi No. Bukti dan Nominal terlebih dahulu!');
+            return;
+        }
+        
+        let noBukti = this.manualKuitansi.noBukti;
+        let tanggal = this.manualKuitansi.tanggal || '-';
+        let nominal = Number(this.manualKuitansi.nominal).toLocaleString('id-ID');
+        let uraian = this.manualKuitansi.uraian || '-';
+        let penerima = this.manualKuitansi.penerima || '-';
+        let tglCetak = new Date().toLocaleDateString('id-ID');
 
-    let printWindow = window.open('', '_blank');
-    printWindow.document.write(
-        '<html>' +
-        '<head><title>Kuitansi Manual</title></head>' +
-        '<body style="font-family: Arial; padding: 30px;">' +
-            '<div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">' +
-                '<h2>SMKS TARUNA TERPADU 2</h2>' +
-                '<p>KUITANSI PEMBAYARAN DANA BOS (MANUAL)</p>' +
-            '</div>' +
-            '<div style="font-size: 14px; line-height: 1.8;">' +
-                '<p><b>No. Bukti BKU:</b> ' + noBukti + '</p>' +
-                '<p><b>Tanggal:</b> ' + tanggal + '</p>' +
-                '<p><b>Nominal:</b> Rp ' + nominal + '</p>' +
-                '<p><b>Untuk Pembayaran:</b> ' + uraian + '</p>' +
-                '<p><b>Penerima:</b> ' + penerima + '</p>' +
-            '</div>' +
-            '<div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center;">' +
-                '<div><br><br><p>Bendahara Sekolah</p></div>' +
-                '<div><p>Bogor, ' + tglCetak + '</p><br><br><p>Kepala Sekolah</p></div>' +
-            '</div>' +
-            '<script>window.print();<\/script>' +
-        '</body>' +
-        '</html>'
-    );
-    printWindow.document.close();
-    this.activeModal = null;
-}
+        let printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Kuitansi Pembayaran Dana BOS</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 40px; color: #111; }
+                    .header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 25px; }
+                    .header h2 { margin: 0; font-size: 18px; font-weight: bold; }
+                    .header p { margin: 5px 0 0; font-size: 14px; font-weight: bold; }
+                    .content { font-size: 13px; line-height: 2; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
+                    .label { font-weight: bold; width: 180px; }
+                    .value { flex: 1; }
+                    .footer { margin-top: 60px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; }
+                    .sign-box { width: 220px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h2>SMKS TARUNA TERPADU 2</h2>
+                    <p>KUITANSI PEMBAYARAN DANA BOS (MANUAL)</p>
+                </div>
+                <div class="content">
+                    <div class="row"><span class="label">No. Bukti BKU</span><span class="value">: ${noBukti}</span></div>
+                    <div class="row"><span class="label">Tanggal Diterima</span><span class="value">: ${tanggal}</span></div>
+                    <div class="row"><span class="label">Nominal Penerimaan</span><span class="value">: Rp ${nominal}</span></div>
+                    <div class="row"><span class="label">Untuk Pembayaran</span><span class="value">: ${uraian}</span></div>
+                    <div class="row"><span class="label">Identitas Penerima</span><span class="value">: ${penerima}</span></div>
+                </div>
+                <div class="footer">
+                    <div class="sign-box">
+                        <p>Bendahara Sekolah</p>
+                        <br><br><br>
+                        <p><b>( Febby Nurtriandini )</b></p>
+                    </div>
+                    <div class="sign-box">
+                        <p>Bogor, ${tglCetak}</p>
+                        <p>Kepala Sekolah</p>
+                        <br><br><br>
+                        <p><b>( Besse Warni )</b></p>
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        this.activeModal = null;
+    }
 }">
 
     <!-- GLOBAL LOADING -->
