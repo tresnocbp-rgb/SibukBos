@@ -31,17 +31,18 @@
     
     async handleLogin() {
         this.isLoading = true;
-        this.loadingText = 'Memeriksa kredensial ke Spreadsheet...';
+        this.loadingText = 'Memverifikasi user dari Spreadsheet...';
         
         try {
-            let formData = new FormData();
+            let formData = new URLSearchParams();
             formData.append('action', 'login');
             formData.append('username', this.usernameInput);
             formData.append('password', this.passwordInput);
 
             let response = await fetch(this.scriptUrl, {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
             });
             let res = await response.json();
             
@@ -88,9 +89,9 @@
         if (!file) return;
 
         this.isLoading = true;
-        this.loadingText = 'Mengirim dan menyetor data BKU ' + this.bulanAktif + ' ' + this.tahun + ' ke Google Spreadsheet...';
+        this.loadingText = 'Mengirim data transaksi BKU ' + this.bulanAktif + ' ' + this.tahun + ' ke Google Spreadsheet...';
 
-        // Data transaksi riil sesuai lampiran PDF BKU Mei 2026 Anda
+        // Data riil berdasarkan file BKU Mei 2026 Anda[cite: 1]
         const transaksiBulanMei = [
             { tanggal: '01-05-2026', kodeKegiatan: '', kodeRekening: '', noBukti: '', uraian: 'Saldo Bank Bulan April 2026', penerima: 315774000, pengeluaran: 0, saldo: 315774000, bulan: this.bulanAktif, tahun: this.tahun },
             { tanggal: '04-05-2026', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0005', noBukti: 'BPU21', uraian: 'Isi ulang gas elpiji 12 kg', penerima: 0, pengeluaran: 245000, saldo: 315529000, bulan: this.bulanAktif, tahun: this.tahun },
@@ -101,30 +102,31 @@
         ];
 
         try {
-            let formData = new FormData();
+            let formData = new URLSearchParams();
             formData.append('action', 'upload_bku');
             formData.append('dataRows', JSON.stringify(transaksiBulanMei));
 
             let response = await fetch(this.scriptUrl, {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
             });
             let res = await response.json();
             
             if (res.status === 'success') {
-                alert('BERHASIL! ' + res.total + ' baris data BKU ' + this.bulanAktif + ' ' + this.tahun + ' telah masuk ke tab Data_BKU Spreadsheet Anda.');
+                alert('SUKSES! ' + res.total + ' baris data BKU ' + this.bulanAktif + ' ' + this.tahun + ' berhasil masuk ke tab Data_BKU Spreadsheet Anda.');
             } else {
-                alert('Gagal disimpan: ' + res.message);
+                alert('Gagal: ' + res.message);
             }
         } catch (error) {
-            alert('Terjadi kesalahan koneksi saat mengirim data ke Spreadsheet.');
+            alert('Gagal terhubung ke server spreadsheet.');
         } finally {
             this.isLoading = false;
         }
     }
 }" @mousemove="if(isLoggedIn) resetIdleTimer()" @keypress="if(isLoggedIn) resetIdleTimer()">
 
-    <!-- MODAL LOADING SPINNER -->
+    <!-- MODAL LOADING -->
     <div x-show="isLoading" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-2xl shadow-2xl flex items-center space-x-4 max-w-sm w-full mx-4">
             <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-900 border-t-transparent"></div>
