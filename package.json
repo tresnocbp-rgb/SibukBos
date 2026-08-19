@@ -1,0 +1,11 @@
+{
+  "name": "sibuk-bos",
+  "version": "2.7.6",
+  "description": "Aplikasi Penginputan dan Pelaporan Dana BOS",
+  "scripts": {
+    "start": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}
