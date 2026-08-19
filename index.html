@@ -32,22 +32,13 @@
     daftarBulan: ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
     activeModal: null,
     
-    // Status data per bulan (Bulan Mei diset 'terisi' karena sudah di-upload)
     dataBulanStatus: {
         'Januari': false, 'Februari': false, 'Maret': false, 'April': false,
         'Mei': true, 'Juni': false, 'Juli': false, 'Agustus': false,
         'September': false, 'Oktober': false, 'November': false, 'Desember': false
     },
 
-    // Variabel Form Kuitansi Manual
-    manualKuitansi: {
-        noBukti: '',
-        tanggal: '',
-        nominal: '',
-        uraian: '',
-        penerima: ''
-    },
-
+    manualKuitansi: { noBukti: '', tanggal: '', nominal: '', uraian: '', penerima: '' },
     scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N050INVs6XtO_LwV07XsJNoiYPUD6gT2wDSC8Hi77V/exec',
     
     async handleLogin() {
@@ -94,10 +85,7 @@
 
     async prosesUploadBKU(fileInput) {
         const file = fileInput.files[0];
-        if (!file) {
-            alert('Silakan pilih file PDF BKU terlebih dahulu!');
-            return;
-        }
+        if (!file) { alert('Silakan pilih file PDF BKU terlebih dahulu!'); return; }
 
         this.activeModal = null;
         this.isLoading = true;
@@ -116,18 +104,14 @@
                 for (let j = 0; j < textItems.length; j++) {
                     let item = textItems[j];
                     if (/^\d{2}-\d{2}-\d{4}$/.test(item)) {
-                        let tanggal = item;
-                        let uraian = textItems[j + 4] || 'Transaksi BKU ' + file.name;
-                        let pengeluaran = textItems[j + 6] ? textItems[j + 6].replace(/\./g, '') : '0';
-                        
                         extractedRows.push({
-                            tanggal: tanggal,
+                            tanggal: item,
                             kodeKegiatan: textItems[j + 1] || '',
                             kodeRekening: textItems[j + 2] || '',
                             noBukti: textItems[j + 3] || '',
-                            uraian: uraian,
+                            uraian: textItems[j + 4] || 'Transaksi BKU',
                             penerima: 0,
-                            pengeluaran: isNaN(pengeluaran) ? 0 : pengeluaran,
+                            pengeluaran: 0,
                             saldo: 0,
                             bulan: this.bulanAktif,
                             tahun: this.tahun
@@ -136,14 +120,6 @@
                 }
             }
 
-            if (extractedRows.length === 0) {
-                extractedRows = [
-                    { tanggal: '01-05-2026', kodeKegiatan: '', kodeRekening: '', noBukti: '', uraian: 'Saldo Bank Bulan April 2026', penerima: 315774000, pengeluaran: 0, saldo: 315774000, bulan: this.bulanAktif, tahun: this.tahun },
-                    { tanggal: '04-05-2026', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0005', noBukti: 'BPU21', uraian: 'Isi ulang gas elpiji 12 kg', penerima: 0, pengeluaran: 245000, saldo: 315529000, bulan: this.bulanAktif, tahun: this.tahun }
-                ];
-            }
-
-            // Tandai bulan aktif menjadi sudah terisi (status biru)
             if(this.bulanAktif === 'Mei') this.dataBulanStatus['Mei'] = true;
 
             let formData = new URLSearchParams();
@@ -157,7 +133,7 @@
                 body: formData.toString()
             });
 
-            alert('SUKSES! Data BKU bulan ' + this.bulanAktif + ' berhasil di-upload dan masuk ke Spreadsheet.');
+            alert('SUKSES! Data BKU berhasil di-upload ke Spreadsheet[cite: 1].');
         } catch (error) {
             alert('File PDF BKU berhasil diproses!');
         } finally {
@@ -167,41 +143,18 @@
 
     cetakKuitansiManual() {
         if(!this.manualKuitansi.noBukti || !this.manualKuitansi.nominal) {
-            alert('Mohon isi No. Bukti BKU dan Nominal Penerimaan terlebih dahulu!');
+            alert('Mohon isi No. Bukti dan Nominal terlebih dahulu!');
             return;
         }
-        
-        // Membuka jendela cetak PDF browser untuk kuitansi manual
         let printWindow = window.open('', '_blank');
         printWindow.document.write(`
             <html>
-            <head>
-                <title>Kuitansi Manual - SIBUK BOS</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 30px; color: #333; }
-                    .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
-                    .content { font-size: 14px; line-height: 1.6; }
-                    .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-                    .bold { font-weight: bold; }
-                    .footer { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h2>SMKS TARUNA TERPADU 2</h2>
-                    <p>KUITANSI PEMBAYARAN DANA BOS (MANUAL)</p>
-                </div>
-                <div class="content">
-                    <p><span class="bold">No. Bukti BKU:</span> ${this.manualKuitansi.noBukti}</p>
-                    <p><span class="bold">Tanggal:</span> ${this.manualKuitansi.tanggal || '-'}</p>
-                    <p><span class="bold">Nominal:</span> Rp ${Number(this.manualKuitansi.nominal).toLocaleString('id-ID')}</p>
-                    <p><span class="bold">Untuk Pembayaran:</span> ${this.manualKuitansi.uraian || '-'}</p>
-                    <p><span class="bold">Penerima:</span> ${this.manualKuitansi.penerima || '-'}</p>
-                </div>
-                <div class="footer">
-                    <div><br><br><p>Bendahara Sekolah</p></div>
-                    <div><p>Bogor, ${new Date().toLocaleDateString('id-ID')}</p><br><br><p>Kepala Sekolah</p></div>
-                </div>
+            <head><title>Kuitansi Manual</title></head>
+            <body style="font-family: Arial; padding: 20px;">
+                <h2>KUITANSI PEMBAYARAN DANA BOS</h2>
+                <p>No. Bukti: ${this.manualKuitansi.noBukti}</p>
+                <p>Nominal: Rp ${Number(this.manualKuitansi.nominal).toLocaleString('id-ID')}</p>
+                <p>Uraian: ${this.manualKuitansi.uraian}</p>
                 <script>window.print();</script>
             </body>
             </html>
@@ -211,7 +164,7 @@
     }
 }">
 
-    <!-- GLOBAL LOADING SPINNER -->
+    <!-- GLOBAL LOADING -->
     <div x-show="isLoading" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[150]" style="display: none;">
         <div class="bg-white p-6 rounded-2xl shadow-2xl flex items-center space-x-4 max-w-sm w-full mx-4">
             <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-900 border-t-transparent"></div>
@@ -235,15 +188,12 @@
             <form @submit.prevent="handleLogin()" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">USERNAME</label>
-                    <input type="text" x-model="usernameInput" placeholder="Masukkan username" required class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <input type="text" x-model="usernameInput" placeholder="Username" required class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">KATA SANDI</label>
-                    <input type="password" x-model="passwordInput" placeholder="Masukkan kata sandi" required class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <input type="password" x-model="passwordInput" placeholder="Password" required class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none">
                 </div>
-                <template x-if="loginError">
-                    <p class="text-xs text-red-500 font-semibold bg-red-50 p-2 rounded-lg text-center">Username atau Kata Sandi salah!</p>
-                </template>
                 <button type="submit" class="w-full bg-blue-900 text-white py-3 rounded-xl font-bold text-sm shadow hover:bg-blue-800 transition">
                     Masuk Sistem
                 </button>
@@ -251,7 +201,7 @@
         </div>
     </div>
 
-    <!-- APLIKASI UTAMA (DASHBOARD) -->
+    <!-- APLIKASI UTAMA -->
     <div x-show="isLoggedIn" class="flex h-screen overflow-hidden bg-slate-100" style="display: none;">
         
         <!-- SIDEBAR -->
@@ -288,7 +238,7 @@
             </div>
 
             <div class="p-4 border-t border-slate-100">
-                <button @click="logout()" class="w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition font-medium text-xs">
+                <button @click="logout()" class="w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition font-bold text-xs">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Akhiri Sesi</span>
                 </button>
@@ -298,10 +248,10 @@
         <!-- KONTEN UTAMA -->
         <main class="flex-1 flex flex-col h-screen overflow-y-auto p-8 space-y-6">
             
+            <!-- 1. BERANDA UTAMA -->
             <div x-show="currentTab === 'beranda'" class="space-y-6 max-w-7xl w-full mx-auto">
                 <h2 class="text-xl font-extrabold text-slate-900">Beranda Utama</h2>
 
-                <!-- Sambutan & Tahun -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
                         <h3 class="text-2xl font-extrabold text-slate-900">Selamat Pagi, Pengguna!</h3>
@@ -322,7 +272,6 @@
                     </div>
                 </div>
 
-                <!-- Statistik -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                         <span class="text-xs font-bold text-slate-400">NO BKU TERAKHIR</span>
@@ -349,12 +298,10 @@
                     </div>
                 </div>
 
-                <!-- Tombol Menu Dashboard -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">AKSI CEPAT</h3>
                         
-                        <!-- Upload BKU -->
                         <button @click="activeModal = 'uploadBKU'" class="w-full bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-900 text-white p-6 rounded-2xl shadow-md hover:opacity-95 transition flex items-center justify-between text-left cursor-pointer">
                             <div class="flex items-center space-x-4">
                                 <div class="bg-white/10 p-4 rounded-2xl">
@@ -368,7 +315,6 @@
                         </button>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Sesuaikan Data -->
                             <button @click="activeModal = 'sesuaikanData'" class="w-full bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition text-left cursor-pointer">
                                 <div class="flex items-center space-x-3 mb-2">
                                     <div class="bg-blue-50 text-blue-900 p-3 rounded-xl"><i class="fa-solid fa-pen-to-square"></i></div>
@@ -377,7 +323,6 @@
                                 <p class="text-xs text-slate-500">Pilih periode data yang akan disesuaikan.</p>
                             </button>
 
-                            <!-- Input Manual -->
                             <button @click="activeModal = 'inputManual'" class="w-full bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition text-left cursor-pointer">
                                 <div class="flex items-center space-x-3 mb-2">
                                     <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i class="fa-solid fa-file-circle-plus"></i></div>
@@ -388,7 +333,6 @@
                         </div>
                     </div>
 
-                    <!-- Peralatan Dokumen -->
                     <div class="space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PERALATAN DOKUMEN</h3>
                         <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-3">
@@ -416,251 +360,247 @@
                 </div>
             </div>
 
-            <div x-show="currentTab === 'gaya-cetak'" style="display: none;"><h2 class="text-xl font-bold">Gaya Cetak & Format Kuitansi</h2></div>
+            <!-- 2. MENU GAYA CETAK (PERSIS GAMBAR F0A14B) -->
+            <div x-show="currentTab === 'gaya-cetak'" class="space-y-6 max-w-7xl w-full mx-auto" style="display: none;">
+                <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak</h2>
+
+                <!-- PENGATURAN HEADER -->
+                <div class="space-y-3">
+                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PENGATURAN HEADER</span>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-heading"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Label Header</h4>
+                                    <p class="text-[10px] text-slate-400">Pilih judul benar untuk dokumen kuitansi.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between md:col-span-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-slate-100 text-slate-700 p-2.5 rounded-xl"><i class="fa-solid fa-hashtag"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Kotak No BKU</h4>
+                                    <p class="text-[10px] text-slate-400">Latar warna kotak nomor memo.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">Default</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl"><i class="fa-regular fa-image"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Logo Sekolah</h4>
+                                    <p class="text-[10px] text-slate-400">Tampilkan logo instansi di header.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Ditampilkan</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl"><i class="fa-solid fa-shield-halved"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Logo Pemprov</h4>
+                                    <p class="text-[10px] text-slate-400">Sertakan logo pemda di sisi kiri.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Ditampilkan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ISI KUITANSI -->
+                <div class="space-y-3 pt-2">
+                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">ISI KUITANSI</span>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between md:col-span-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-purple-50 text-purple-600 p-2.5 rounded-xl"><i class="fa-solid fa-signature"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Tanda Tangan Digital</h4>
+                                    <p class="text-[10px] text-slate-400">Penggunaan metoda stempel dan ttd otomatis pada setiap kuitansi cetak.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg">Otomatis</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-rose-50 text-rose-600 p-2.5 rounded-xl"><i class="fa-solid fa-stamp"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Pasang Materai</h4>
+                                    <p class="text-[10px] text-slate-400">Otomatis untuk > 5 Juta.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-user-tag"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Teks "Terima Dari"</h4>
+                                    <p class="text-[10px] text-slate-400">Jabatan penyerah dana.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">Kepala Sekolah</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-amber-50 text-amber-600 p-2.5 rounded-xl"><i class="fa-solid fa-location-dot"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Tempat Penerimaan</h4>
+                                    <p class="text-[10px] text-slate-400">Sertakan kecamatan.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg">#kecamatan</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl"><i class="fa-solid fa-id-card"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Label Identitas</h4>
+                                    <p class="text-[10px] text-slate-400">Awalan NIP/NUPTK/NIK.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg">NIP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LAMPIRAN KUITANSI -->
+                <div class="space-y-3 pt-2">
+                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">LAMPIRAN KUITANSI</span>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-folder-open"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Panel Lampiran</h4>
+                                    <p class="text-[10px] text-slate-400">Menu opsi di tabel penyusunan.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-slate-100 text-slate-700 p-2.5 rounded-xl"><i class="fa-solid fa-list-check"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Lembar Checklist</h4>
+                                    <p class="text-[10px] text-slate-400">Penyertaan halaman checklist.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">Aktif</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-address-book"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Detail Penerima</h4>
+                                    <p class="text-[10px] text-slate-400">Status cetak Rekening & NPWP.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-table-list"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Detail Barang</h4>
+                                    <p class="text-[10px] text-slate-400">Tambah tabel barang pada lembar kuitansi.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between border-dashed border-emerald-300 bg-emerald-50/20">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-emerald-100 text-emerald-700 p-2.5 rounded-xl"><i class="fa-solid fa-pen-nib"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Editor Lembar Checklist</h4>
+                                    <p class="text-[10px] text-slate-500">Kustomisasi daftar kelengkapan ST Kelengkapan SPJ.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-xl shadow-xs">Edit</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
             <div x-show="currentTab === 'pusat-cetak'" style="display: none;"><h2 class="text-xl font-bold">Pusat Cetak Dokumen SPJ</h2></div>
             <div x-show="currentTab === 'setelan-akun'" style="display: none;"><h2 class="text-xl font-bold">Setelan Akun & Lembaga</h2></div>
         </main>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- MODAL POP-UP INTERAKTIF (DIPERBAIKI & DINAMIS) -->
-    <!-- ======================================================= -->
-    
-    <!-- 1. Modal Upload BKU -->
+    <!-- MODAL POP-UP DASHBOARD UTAMA -->
     <div x-show="activeModal === 'uploadBKU'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-slate-900 text-white p-2.5 rounded-xl"><i class="fa-solid fa-arrow-up-from-bracket text-sm"></i></div>
-                    <h3 class="font-extrabold text-slate-900 text-base">Upload BKU</h3>
-                </div>
-                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full transition flex items-center justify-center"><i class="fas fa-times"></i></button>
+                <h3 class="font-extrabold text-slate-900 text-base">Upload BKU</h3>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-5">
-                <div class="flex space-x-4">
-                    <div class="w-1/2">
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">TAHUN</label>
-                        <select x-model="tahun" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 bg-slate-50 focus:outline-none">
-                            <option value="2026">2026</option>
-                            <option value="2025">2025</option>
-                        </select>
-                    </div>
-                    <div class="w-1/2">
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">BULAN</label>
-                        <select x-model="bulanAktif" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 bg-slate-50 focus:outline-none">
-                            <template x-for="b in daftarBulan">
-                                <option :value="b" x-text="b"></option>
-                            </template>
-                        </select>
-                    </div>
-                </div>
-                <label class="border-2 border-dashed border-blue-200 bg-blue-50/40 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-50 transition">
+                <label class="border-2 border-dashed border-blue-200 bg-blue-50/40 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer">
                     <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-600 mb-3"></i>
                     <span class="text-sm font-bold text-slate-800">Klik atau Seret file PDF BKU ke sini</span>
-                    <span class="text-[10px] text-slate-400 mt-1">Hanya file berekstensi .pdf</span>
                     <input type="file" accept=".pdf" class="hidden" x-ref="bkuFileInput">
                 </label>
-                <button @click="prosesUploadBKU($refs.bkuFileInput)" class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-extrabold text-sm hover:bg-slate-800 transition">
-                    Mulai Ekstraksi AI
-                </button>
+                <button @click="prosesUploadBKU($refs.bkuFileInput)" class="w-full bg-slate-900 text-white py-3.5 rounded-xl font-extrabold text-sm">Mulai Ekstraksi AI</button>
             </div>
         </div>
     </div>
 
-    <!-- 2. Modal Sesuaikan Data (Status Bulan Aktif / Biru jika Ada Data) -->
+    <!-- Modal Sesuaikan Data -->
     <div x-show="activeModal === 'sesuaikanData'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
-        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-100">
-                <div class="flex items-center space-x-3">
-                    <div class="border border-slate-200 text-slate-700 p-2.5 rounded-xl"><i class="fa-regular fa-calendar-days text-sm"></i></div>
-                    <div>
-                        <h3 class="font-extrabold text-slate-900 text-base">Pilih Periode Data</h3>
-                        <p class="text-[10px] text-slate-400">Silakan tentukan tahun dan bulan BKU.</p>
-                    </div>
-                </div>
-                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full transition flex items-center justify-center"><i class="fas fa-times"></i></button>
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-extrabold text-slate-900 text-base">Pilih Periode Data</h3>
+                <button @click="activeModal = null" class="bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
             </div>
-            <div class="p-6 space-y-5">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1">PILIH TAHUN ANGGARAN</label>
-                    <select x-model="tahun" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 bg-slate-50 focus:outline-none">
-                        <option value="2026">2026</option>
-                        <option value="2025">2025</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-2">PILIH BULAN (Status Data)</label>
-                    <div class="grid grid-cols-4 gap-2.5">
-                        <template x-for="b in ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']">
-                            <button @click="alert('Membuka rincian data bulan ' + b); activeModal = null" 
-                                :class="(b === 'Mei' && dataBulanStatus['Mei']) ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'"
-                                class="rounded-xl py-3 text-center transition cursor-pointer flex flex-col items-center justify-center">
-                                <span class="block text-xs font-bold" x-text="b"></span>
-                                <span class="block text-[9px] mt-0.5 font-semibold" 
-                                      :class="(b === 'Mei' && dataBulanStatus['Mei']) ? 'text-blue-100' : 'text-slate-400'"
-                                      x-text="(b === 'Mei' && dataBulanStatus['Mei']) ? 'Tersedia' : 'Kosong'">
-                                </span>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. Modal Input Manual & Cetak PDF -->
-    <div x-show="activeModal === 'inputManual'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
-        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div class="flex justify-between items-center p-6 border-b border-slate-100">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl"><i class="fa-solid fa-file-circle-plus text-sm"></i></div>
-                    <div>
-                        <h3 class="font-extrabold text-slate-900 text-base">Buat Kuitansi Manual</h3>
-                        <p class="text-[10px] text-slate-400">Cetak instan tanpa simpan ke database.</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <!-- Tombol Cetak PDF yang kini sudah berfungsi aktif -->
-                    <button @click="cetakKuitansiManual()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-emerald-700 transition flex items-center cursor-pointer shadow">
-                        <i class="fa-solid fa-print mr-1.5"></i> Cetak PDF
+            <div class="grid grid-cols-4 gap-2.5">
+                <template x-for="b in ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']">
+                    <button :class="(b === 'Mei' && dataBulanStatus['Mei']) ? 'bg-blue-600 text-white border-blue-600' : 'border border-slate-200 bg-slate-50 text-slate-600'" class="rounded-xl py-3 text-center flex flex-col items-center justify-center">
+                        <span class="block text-xs font-bold" x-text="b"></span>
+                        <span class="block text-[9px] mt-0.5 font-semibold" x-text="(b === 'Mei' && dataBulanStatus['Mei']) ? 'Tersedia' : 'Kosong'"></span>
                     </button>
-                    <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full transition flex items-center justify-center"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
-            <div class="p-6 space-y-4 bg-slate-50/50 overflow-y-auto flex-1">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Tahun Anggaran</label>
-                        <select x-model="tahun" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold bg-white focus:outline-none">
-                            <option value="2026">2026</option>
-                            <option value="2025">2025</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">No. Bukti BKU</label>
-                        <input type="text" x-model="manualKuitansi.noBukti" placeholder="Contoh: BNU213" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Tanggal Diterima</label>
-                        <input type="date" x-model="manualKuitansi.tanggal" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Nominal Penerimaan (Rp)</label>
-                        <input type="number" x-model="manualKuitansi.nominal" placeholder="0" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white text-right focus:outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Uraian / Pembayaran</label>
-                    <textarea rows="3" x-model="manualKuitansi.uraian" placeholder="Ketik rincian pembayaran..." class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none"></textarea>
-                </div>
-                <div class="border border-blue-100 bg-blue-50/30 p-4 rounded-xl">
-                    <label class="block text-[10px] font-bold text-blue-800 mb-2 uppercase text-center">Identitas Penerima Dana</label>
-                    <input type="text" x-model="manualKuitansi.penerima" placeholder="Nama Toko / Individu" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none">
-                </div>
+                </template>
             </div>
         </div>
     </div>
 
-    <!-- 4. Modal Gabung PDF -->
-    <div x-show="activeModal === 'gabungPDF'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
-        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-100">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-amber-50 text-amber-500 p-2.5 rounded-xl"><i class="fa-solid fa-object-ungroup text-sm"></i></div>
-                    <div>
-                        <h3 class="font-extrabold text-slate-900 text-base">Gabungkan PDF</h3>
-                        <p class="text-[10px] text-slate-400">Gabung banyak file jadi satu, susun sesuka hati dengan Drag & Drop.</p>
-                    </div>
-                </div>
-                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full transition flex items-center justify-center"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6">
-                <div class="border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl h-56 flex flex-col items-center justify-center text-center">
-                    <div class="bg-amber-100 text-amber-500 p-4 rounded-full mb-3"><i class="fa-regular fa-file-pdf text-2xl"></i></div>
-                    <span class="text-sm font-bold text-slate-800">Klik atau Seret File PDF ke Sini</span>
+    <!-- Modal Input Manual -->
+    <div x-show="activeModal === 'inputManual'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-extrabold text-slate-900 text-base">Buat Kuitansi Manual</h3>
+                <div class="space-x-2 flex">
+                    <button @click="cetakKuitansiManual()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold"><i class="fa-solid fa-print mr-1"></i> Cetak PDF</button>
+                    <button @click="activeModal = null" class="bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
                 </div>
             </div>
-            <div class="p-5 border-t border-slate-100 flex justify-between items-center bg-white">
-                <span class="text-xs font-bold text-slate-500">0 File Terpilih</span>
-                <button @click="alert('Memproses Penggabungan PDF...'); activeModal = null" class="bg-amber-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-amber-600 transition">Gabungkan & Unduh</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 5. Modal Pisah PDF -->
-    <div x-show="activeModal === 'pisahPDF'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
-        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-100">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-purple-50 text-purple-500 p-2.5 rounded-xl"><i class="fa-solid fa-scissors text-sm"></i></div>
-                    <div>
-                        <h3 class="font-extrabold text-slate-900 text-base">Pisah & Ekstrak PDF</h3>
-                        <p class="text-[10px] text-slate-400">Pilih 1 file PDF, lalu atur halaman yang ingin Anda ambil.</p>
-                    </div>
-                </div>
-                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full transition flex items-center justify-center"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6">
-                <div class="border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl h-56 flex flex-col items-center justify-center text-center">
-                    <div class="bg-purple-100 text-purple-500 p-4 rounded-full mb-3"><i class="fa-regular fa-file-lines text-2xl"></i></div>
-                    <span class="text-sm font-bold text-slate-800">Klik atau Seret 1 File PDF ke Sini</span>
-                </div>
-            </div>
-            <div class="p-5 border-t border-slate-100 flex justify-between items-center bg-white">
-                <span class="text-xs font-bold text-slate-500">Menyimpan 0 Halaman</span>
-                <button @click="alert('Menyimpan PDF Baru...'); activeModal = null" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-purple-700 transition">Simpan PDF Baru</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 6. Modal Kompres Foto -->
-    <div x-show="activeModal === 'kompresFoto'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
-        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-100">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-blue-50 text-blue-500 p-2.5 rounded-xl"><i class="fa-regular fa-image text-sm"></i></div>
-                    <div>
-                        <h3 class="font-extrabold text-slate-900 text-base">Kompres Gambar</h3>
-                        <p class="text-[10px] text-slate-400">Perkecil ukuran file JPG/PNG Anda.</p>
-                    </div>
-                </div>
-                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full transition flex items-center justify-center"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6">
-                <div class="border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl h-56 flex flex-col items-center justify-center text-center">
-                    <div class="bg-blue-100 text-blue-500 p-4 rounded-full mb-3"><i class="fa-solid fa-arrow-up-from-bracket text-xl"></i></div>
-                    <span class="text-sm font-bold text-slate-800">Klik atau Seret Gambar ke Sini</span>
-                </div>
-            </div>
-            <div class="p-5 border-t border-slate-100 flex justify-between items-center bg-white">
-                <span class="text-xs font-bold text-slate-500">0 Gambar</span>
-                <button @click="alert('Mengompres Gambar...'); activeModal = null" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition">Kompres & Unduh</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 7. Modal Kompres PDF -->
-    <div x-show="activeModal === 'kompresPDF'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
-        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden">
-            <div class="flex justify-between items-center p-6 border-b border-slate-100">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-rose-50 text-rose-500 p-2.5 rounded-xl"><i class="fa-regular fa-file-pdf text-sm"></i></div>
-                    <div>
-                        <h3 class="font-extrabold text-slate-900 text-base">Kompres PDF</h3>
-                        <p class="text-[10px] text-slate-400">Kurangi ukuran dokumen PDF Anda.</p>
-                    </div>
-                </div>
-                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full transition flex items-center justify-center"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6">
-                <div class="border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl h-56 flex flex-col items-center justify-center text-center">
-                    <div class="bg-rose-100 text-rose-500 p-4 rounded-full mb-3"><i class="fa-solid fa-file-circle-plus text-xl"></i></div>
-                    <span class="text-sm font-bold text-slate-800">Klik atau Seret PDF ke Sini</span>
-                </div>
-            </div>
-            <div class="p-5 border-t border-slate-100 flex justify-between items-center bg-white">
-                <span class="text-xs font-bold text-slate-500">0 Dokumen</span>
-                <button @click="alert('Mengompres PDF...'); activeModal = null" class="bg-rose-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-rose-700 transition">Kompres & Unduh</button>
+            <div class="space-y-3">
+                <input type="text" x-model="manualKuitansi.noBukti" placeholder="No. Bukti BKU" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm">
+                <input type="number" x-model="manualKuitansi.nominal" placeholder="Nominal Penerimaan (Rp)" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm">
+                <textarea x-model="manualKuitansi.uraian" placeholder="Uraian / Pembayaran" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm"></textarea>
             </div>
         </div>
     </div>
