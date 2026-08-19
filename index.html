@@ -61,7 +61,7 @@
         </div>
     </div>
 
-    <!-- APLIKASI UTAMA -->
+    <!-- APLIKASI UTAMA (MODE DASHBOARD AWAL) -->
     <div x-show="isLoggedIn" class="flex h-screen overflow-hidden bg-[#f0f4f8] p-3 gap-3" style="display: none;">
         
         <!-- SIDEBAR -->
@@ -243,7 +243,7 @@
                 </div>
             </div>
 
-            <!-- Gaya Cetak -->
+            <!-- Menu Lainnya -->
             <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak & Format Kuitansi</h2>
             </div>
@@ -304,7 +304,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT ALPINE.JS UTAMA DI LUAR TAG HTML AGAR TIDAK ERROR -->
+    <!-- SCRIPT ALPINE.JS -->
     <script>
         function appData() {
             return {
@@ -324,7 +324,7 @@
                     'Ags': false, 'Sep': false, 'Okt': false, 'Nov': false, 'Des': false
                 },
                 manualKuitansi: { noBukti: '', tanggal: '', nominal: '', uraian: '', penerima: '' },
-                scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N05OINvs6XtO_LwV07XsJNoiPUD6gT2wDSC8Hi77V/exec',
+                scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N050INvs6XtO_LwV07XsJNoiPUD6gT2wDSC8Hi77V/exec',
 
                 async handleLogin() {
                     this.isLoading = true;
@@ -432,15 +432,16 @@
                         return;
                     }
                     
-                    var noBukti = this.manualKuitansi.noBukti;
-                    var tanggal = this.manualKuitansi.tanggal || '-';
-                    var nominal = Number(this.manualKuitansi.nominal).toLocaleString('id-ID');
-                    var uraian = this.manualKuitansi.uraian || '-';
-                    var penerima = this.manualKuitansi.penerima || '-';
-                    var tglCetak = new Date().toLocaleDateString('id-ID');
+                    let noBukti = this.manualKuitansi.noBukti;
+                    let tanggal = this.manualKuitansi.tanggal || '-';
+                    let nominal = Number(this.manualKuitansi.nominal).toLocaleString('id-ID');
+                    let uraian = this.manualKuitansi.uraian || '-';
+                    let penerima = this.manualKuitansi.penerima || '-';
+                    let tglCetak = new Date().toLocaleDateString('id-ID');
 
-                    var printWindow = window.open('', '_blank');
-                    var htmlContent = '<html><head><title>Kuitansi Pembayaran Dana BOS</title>' +
+                    let printWindow = window.open('', '_blank');
+                    printWindow.document.write(
+                        '<html><head><title>Kuitansi Pembayaran Dana BOS</title>' +
                         '<style>body { font-family: Arial, sans-serif; padding: 40px; color: #111; }' +
                         '.header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 25px; }' +
                         '.header h2 { margin: 0; font-size: 18px; font-weight: bold; }' +
@@ -461,9 +462,8 @@
                         '</div>' +
                         '<div class="footer"><div class="sign-box"><p>Bendahara Sekolah</p><br><br><br><p><b>( Febby Nurtriandini )</b></p></div>' +
                         '<div class="sign-box"><p>Bogor, ' + tglCetak + '</p><p>Kepala Sekolah</p><br><br><br><p><b>( Besse Warni )</b></p></div></div>' +
-                        '<script>window.onload = function() { window.print(); }</script></body></html>';
-
-                    printWindow.document.write(htmlContent);
+                        '<script>window.onload = function() { window.print(); }</script></body></html>'
+                    );
                     printWindow.document.close();
                     this.activeModal = null;
                 }
