@@ -147,60 +147,38 @@
             return;
         }
         
-        let noBukti = this.manualKuitansi.noBukti;
-        let tanggal = this.manualKuitansi.tanggal || '-';
-        let nominal = Number(this.manualKuitansi.nominal).toLocaleString('id-ID');
-        let uraian = this.manualKuitansi.uraian || '-';
-        let penerima = this.manualKuitansi.penerima || '-';
-        let tglCetak = new Date().toLocaleDateString('id-ID');
+        var noBukti = this.manualKuitansi.noBukti;
+        var tanggal = this.manualKuitansi.tanggal || '-';
+        var nominal = Number(this.manualKuitansi.nominal).toLocaleString('id-ID');
+        var uraian = this.manualKuitansi.uraian || '-';
+        var penerima = this.manualKuitansi.penerima || '-';
+        var tglCetak = new Date().toLocaleDateString('id-ID');
 
-        let printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>Kuitansi Pembayaran Dana BOS</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 40px; color: #111; }
-                    .header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 25px; }
-                    .header h2 { margin: 0; font-size: 18px; font-weight: bold; }
-                    .header p { margin: 5px 0 0; font-size: 14px; font-weight: bold; }
-                    .content { font-size: 13px; line-height: 2; }
-                    .row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
-                    .label { font-weight: bold; width: 180px; }
-                    .value { flex: 1; }
-                    .footer { margin-top: 60px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; }
-                    .sign-box { width: 220px; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h2>SMKS TARUNA TERPADU 2</h2>
-                    <p>KUITANSI PEMBAYARAN DANA BOS (MANUAL)</p>
-                </div>
-                <div class="content">
-                    <div class="row"><span class="label">No. Bukti BKU</span><span class="value">: ${noBukti}</span></div>
-                    <div class="row"><span class="label">Tanggal Diterima</span><span class="value">: ${tanggal}</span></div>
-                    <div class="row"><span class="label">Nominal Penerimaan</span><span class="value">: Rp ${nominal}</span></div>
-                    <div class="row"><span class="label">Untuk Pembayaran</span><span class="value">: ${uraian}</span></div>
-                    <div class="row"><span class="label">Identitas Penerima</span><span class="value">: ${penerima}</span></div>
-                </div>
-                <div class="footer">
-                    <div class="sign-box">
-                        <p>Bendahara Sekolah</p>
-                        <br><br><br>
-                        <p><b>( Febby Nurtriandini )</b></p>
-                    </div>
-                    <div class="sign-box">
-                        <p>Bogor, ${tglCetak}</p>
-                        <p>Kepala Sekolah</p>
-                        <br><br><br>
-                        <p><b>( Besse Warni )</b></p>
-                    </div>
-                </div>
-                <script>window.onload = function() { window.print(); }</script>
-            </body>
-            </html>
-        `);
+        var printWindow = window.open('', '_blank');
+        var htmlContent = '<html><head><title>Kuitansi Pembayaran Dana BOS</title>' +
+            '<style>body { font-family: Arial, sans-serif; padding: 40px; color: #111; }' +
+            '.header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 25px; }' +
+            '.header h2 { margin: 0; font-size: 18px; font-weight: bold; }' +
+            '.header p { margin: 5px 0 0; font-size: 14px; font-weight: bold; }' +
+            '.content { font-size: 13px; line-height: 2; }' +
+            '.row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }' +
+            '.label { font-weight: bold; width: 180px; }' +
+            '.value { flex: 1; }' +
+            '.footer { margin-top: 60px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; }' +
+            '.sign-box { width: 220px; }</style></head><body>' +
+            '<div class="header"><h2>SMKS TARUNA TERPADU 2</h2><p>KUITANSI PEMBAYARAN DANA BOS (MANUAL)</p></div>' +
+            '<div class="content">' +
+            '<div class="row"><span class="label">No. Bukti BKU</span><span class="value">: ' + noBukti + '</span></div>' +
+            '<div class="row"><span class="label">Tanggal Diterima</span><span class="value">: ' + tanggal + '</span></div>' +
+            '<div class="row"><span class="label">Nominal Penerimaan</span><span class="value">: Rp ' + nominal + '</span></div>' +
+            '<div class="row"><span class="label">Untuk Pembayaran</span><span class="value">: ' + uraian + '</span></div>' +
+            '<div class="row"><span class="label">Identitas Penerima</span><span class="value">: ' + penerima + '</span></div>' +
+            '</div>' +
+            '<div class="footer"><div class="sign-box"><p>Bendahara Sekolah</p><br><br><br><p><b>( Febby Nurtriandini )</b></p></div>' +
+            '<div class="sign-box"><p>Bogor, ' + tglCetak + '</p><p>Kepala Sekolah</p><br><br><br><p><b>( Besse Warni )</b></p></div></div>' +
+            '<script>window.onload = function() { window.print(); }</script></body></html>';
+
+        printWindow.document.write(htmlContent);
         printWindow.document.close();
         this.activeModal = null;
     }
@@ -280,7 +258,7 @@
             </div>
 
             <div class="p-4 border-t border-slate-100">
-                <button @click="logout()" class="w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition font-bold text-xs">
+                <button @click="logout()" class="w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition font-medium text-xs">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Akhiri Sesi</span>
                 </button>
@@ -402,11 +380,10 @@
                 </div>
             </div>
 
-            <!-- 2. MENU GAYA CETAK (100% PERSIS SEPERTI GAMBAR F0AC8C) -->
+            <!-- 2. MENU GAYA CETAK -->
             <div x-show="currentTab === 'gaya-cetak'" class="space-y-6 max-w-7xl w-full mx-auto" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak</h2>
 
-                <!-- PENGATURAN HEADER -->
                 <div class="space-y-3">
                     <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PENGATURAN HEADER</span>
                     
@@ -459,7 +436,6 @@
                     </div>
                 </div>
 
-                <!-- ISI KUITANSI -->
                 <div class="space-y-3 pt-2">
                     <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">ISI KUITANSI</span>
                     
@@ -523,7 +499,6 @@
                     </div>
                 </div>
 
-                <!-- LAMPIRAN KUITANSI -->
                 <div class="space-y-3 pt-2">
                     <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">LAMPIRAN KUITANSI</span>
                     
