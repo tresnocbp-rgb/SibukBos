@@ -19,7 +19,7 @@
         }
     </script>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800" x-data="{ 
+<body class="bg-[#f0f4f8] font-sans text-slate-800" x-data="{ 
     isLoggedIn: localStorage.getItem('sibuk_logged') === 'true', 
     usernameInput: '',
     passwordInput: '', 
@@ -33,9 +33,8 @@
     activeModal: null,
     
     dataBulanStatus: {
-        'Januari': false, 'Februari': false, 'Maret': false, 'April': false,
-        'Mei': true, 'Juni': false, 'Juli': false, 'Agustus': false,
-        'September': false, 'Oktober': false, 'November': false, 'Desember': false
+        'Feb': false, 'Mar': false, 'Apr': false, 'Mei': true, 'Jun': false, 'Jul': false,
+        'Ags': false, 'Sep': false, 'Okt': false, 'Nov': false, 'Des': false
     },
 
     manualKuitansi: { noBukti: '', tanggal: '', nominal: '', uraian: '', penerima: '' },
@@ -221,14 +220,14 @@
         </div>
     </div>
 
-    <!-- APLIKASI UTAMA -->
-    <div x-show="isLoggedIn" class="flex h-screen overflow-hidden bg-slate-100" style="display: none;">
+    <!-- APLIKASI UTAMA (TAMPILAN 100% PERSIS SEPERTI GAMBAR F1031F) -->
+    <div x-show="isLoggedIn" class="flex h-screen overflow-hidden bg-[#f0f4f8] p-3 gap-3" style="display: none;">
         
         <!-- SIDEBAR -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between hidden md:flex shadow-xs z-10">
+        <aside class="w-64 bg-white border border-slate-200/80 rounded-3xl flex flex-col justify-between shadow-2xs p-4">
             <div>
-                <div class="p-6 border-b border-slate-100 flex items-center space-x-3">
-                    <div class="bg-blue-900 text-white p-2.5 rounded-xl font-bold text-lg shadow-sm">
+                <div class="p-3 mb-4 flex items-center space-x-3 border-b border-slate-100 pb-4">
+                    <div class="bg-blue-900 text-white p-2.5 rounded-xl font-bold text-lg shadow-xs">
                         <i class="fa-solid fa-file-invoice-dollar"></i>
                     </div>
                     <div>
@@ -237,7 +236,7 @@
                     </div>
                 </div>
 
-                <nav class="p-4 space-y-1">
+                <nav class="space-y-1">
                     <button @click="currentTab = 'beranda'" :class="currentTab === 'beranda' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-xs font-semibold">
                         <i class="fa-solid fa-house-chimney w-4"></i>
                         <span>Beranda Utama</span>
@@ -257,8 +256,8 @@
                 </nav>
             </div>
 
-            <div class="p-4 border-t border-slate-100">
-                <button @click="logout()" class="w-full flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition font-medium text-xs">
+            <div class="pt-4 border-t border-slate-100">
+                <button @click="logout()" class="w-full flex items-center space-x-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition font-bold text-xs">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Akhiri Sesi</span>
                 </button>
@@ -266,310 +265,157 @@
         </aside>
 
         <!-- KONTEN UTAMA -->
-        <main class="flex-1 flex flex-col h-screen overflow-y-auto p-8 space-y-6">
+        <main class="flex-1 flex flex-col h-full overflow-y-auto bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs space-y-6">
             
             <!-- 1. BERANDA UTAMA -->
-            <div x-show="currentTab === 'beranda'" class="space-y-6 max-w-7xl w-full mx-auto">
+            <div x-show="currentTab === 'beranda'" class="space-y-6">
                 <h2 class="text-xl font-extrabold text-slate-900">Beranda Utama</h2>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
-                        <h3 class="text-2xl font-extrabold text-slate-900">Selamat Pagi, Pengguna!</h3>
-                        <p class="text-sm text-slate-500 mt-1">Selamat datang di pusat kendali. Semua ringkasan data dan alat pengelola SPJ Anda tersedia di sini.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="lg:col-span-2 bg-white border border-slate-200/80 p-6 rounded-2xl flex flex-col justify-center shadow-2xs">
+                        <h3 class="text-2xl font-extrabold text-slate-900">Selamat Siang, Pengguna!</h3>
+                        <p class="text-xs text-slate-500 mt-1">Selamat datang di pusat kendali. Semua ringkasan data dan alat pengelola SPJ Anda tersedia di sini.</p>
                     </div>
                     
-                    <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-sm flex justify-between items-center">
+                    <div class="bg-[#0b1329] text-white p-5 rounded-2xl flex justify-between items-center shadow-xs">
                         <div>
-                            <span class="text-[10px] text-slate-400 font-bold block mb-1">TAHUN ANGGARAN</span>
-                            <select x-model="tahun" class="bg-transparent text-white text-lg font-extrabold focus:outline-none cursor-pointer">
+                            <span class="text-[9px] text-slate-400 font-bold tracking-widest block mb-1">TAHUN ANGGARAN</span>
+                            <select x-model="tahun" class="bg-transparent text-white text-sm font-extrabold focus:outline-none cursor-pointer">
                                 <option value="2026" class="text-slate-900">Tahun 2026</option>
                                 <option value="2025" class="text-slate-900">Tahun 2025</option>
                             </select>
                         </div>
-                        <div class="bg-white/10 p-3.5 rounded-2xl text-blue-400">
-                            <i class="fa-regular fa-calendar-days text-2xl"></i>
+                        <div class="bg-white/10 p-3 rounded-xl text-blue-400">
+                            <i class="fa-regular fa-calendar-days text-xl"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                        <span class="text-xs font-bold text-slate-400">NO BKU TERAKHIR</span>
-                        <div class="text-3xl font-extrabold text-slate-800 my-3">BPU26</div>
-                        <span class="text-xs text-emerald-600 font-medium">Tersinkron ke Spreadsheet[cite: 1]</span>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex flex-col justify-between">
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wider">NO BKU TERAKHIR</span>
+                        <div class="text-2xl font-extrabold text-slate-800 my-2">-</div>
+                        <span class="text-[11px] text-slate-400">Belum ada data</span>
                     </div>
 
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                        <span class="text-xs font-bold text-slate-400">PROGRES SPJ</span>
-                        <div class="text-3xl font-extrabold text-emerald-600 my-3">100%</div>
-                        <span class="text-xs text-emerald-600 font-medium">Sinkron Selesai</span>
+                    <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex flex-col justify-between">
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wider">PROGRES SPJ</span>
+                        <div class="text-2xl font-extrabold text-emerald-600 my-2">0%</div>
+                        <span class="text-[11px] text-slate-400">Menunggu proses BKU</span>
                     </div>
 
-                    <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-sm flex flex-col justify-between">
-                        <span class="text-xs font-bold text-slate-400 mb-3">PILIH BULAN BKU</span>
-                        <div class="grid grid-cols-6 gap-2 text-center">
+                    <!-- Kotak Bulan Horizontal Persis Gambar F1031F -->
+                    <div class="bg-[#0b1329] text-white p-4 rounded-2xl shadow-xs flex items-center justify-between">
+                        <div class="grid grid-cols-6 gap-1 w-full text-center">
                             <template x-for="b in daftarBulan">
                                 <button @click="bulanAktif = b" 
-                                    :class="bulanAktif === b ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-400 ring-offset-1 ring-offset-slate-900' : 'bg-slate-800/80 text-slate-400 hover:text-white'"
-                                    class="py-1.5 rounded-lg text-[10px] transition font-semibold" x-text="b">
+                                    :class="bulanAktif === b ? 'bg-blue-600 text-white font-bold' : 'bg-[#15203d] text-slate-400 hover:text-white'"
+                                    class="py-1.5 rounded text-[10px] transition font-semibold" x-text="b">
                                 </button>
                             </template>
                         </div>
                     </div>
                 </div>
 
+                <!-- Bagian Aksi Cepat & Peralatan Dokumen -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">AKSI CEPAT</h3>
                         
-                        <button @click="activeModal = 'uploadBKU'" class="w-full bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-900 text-white p-6 rounded-2xl shadow-md hover:opacity-95 transition flex items-center justify-between text-left cursor-pointer">
+                        <button @click="activeModal = 'uploadBKU'" class="w-full bg-gradient-to-r from-[#0b1329] via-[#101c3d] to-[#0b1329] text-white p-6 rounded-2xl shadow-md hover:opacity-95 transition flex items-center justify-between text-left cursor-pointer border border-slate-800">
                             <div class="flex items-center space-x-4">
-                                <div class="bg-white/10 p-4 rounded-2xl">
+                                <div class="bg-white/10 p-3.5 rounded-2xl">
                                     <i class="fa-solid fa-cloud-arrow-up text-2xl text-blue-200"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-lg font-bold">Upload BKU Baru (<span x-text="bulanAktif"></span> <span x-text="tahun"></span>)</h4>
-                                    <p class="text-xs text-blue-200 mt-0.5">Ekstrak otomatis seluruh isi PDF BKU ke Spreadsheet[cite: 1].</p>
+                                    <h4 class="text-base font-bold">Upload BKU Baru</h4>
+                                    <p class="text-xs text-slate-400 mt-0.5">Ekstrak otomatis PDF BKU dari Arkas menjadi data kuitansi siap cetak.</p>
                                 </div>
                             </div>
                         </button>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <button @click="activeModal = 'sesuaikanData'" class="w-full bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition text-left cursor-pointer">
+                            <button @click="activeModal = 'sesuaikanData'" class="w-full bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs hover:bg-slate-50 transition text-left cursor-pointer">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <div class="bg-blue-50 text-blue-900 p-3 rounded-xl"><i class="fa-solid fa-pen-to-square"></i></div>
-                                    <h4 class="font-bold text-slate-800 text-base">Sesuaikan Data</h4>
+                                    <div class="bg-blue-50 text-blue-900 p-2.5 rounded-xl"><i class="fa-solid fa-pen-to-square"></i></div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Sesuaikan Data</h4>
                                 </div>
-                                <p class="text-xs text-slate-500">Pilih periode data yang akan disesuaikan.</p>
+                                <p class="text-xs text-slate-500">Ubah rincian, perbaiki nama penerima, dan edit nominal.</p>
                             </button>
 
-                            <button @click="activeModal = 'inputManual'" class="w-full bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md transition text-left cursor-pointer">
+                            <button @click="activeModal = 'inputManual'" class="w-full bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs hover:bg-slate-50 transition text-left cursor-pointer">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i class="fa-solid fa-file-circle-plus"></i></div>
-                                    <h4 class="font-bold text-slate-800 text-base">Input Manual</h4>
+                                    <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl"><i class="fa-solid fa-file-circle-plus"></i></div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Input Manual</h4>
                                 </div>
-                                <p class="text-xs text-slate-500">Buat kuitansi instan tanpa database.</p>
+                                <p class="text-xs text-slate-500">Buat kuitansi satuan mendadak tanpa menyimpannya ke database.</p>
                             </button>
                         </div>
+
+                        <!-- Tombol Kosongkan Data BKU Bulanan -->
+                        <button @click="confirm('Kosongkan data BKU bulanan?')" class="w-full bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs hover:bg-red-50/30 transition flex items-center justify-between text-left cursor-pointer">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-red-50 text-red-600 p-2.5 rounded-xl"><i class="fa-solid fa-trash-can text-sm"></i></div>
+                                <h4 class="font-bold text-slate-800 text-xs">Kosongkan Data BKU Bulanan</h4>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs pr-2"></i>
+                        </button>
                     </div>
 
+                    <!-- Peralatan Dokumen (5 Kotak Persis Gambar F1031F) -->
                     <div class="space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PERALATAN DOKUMEN</h3>
-                        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-3">
-                            <h4 class="font-bold text-slate-800 text-sm">Peralatan PDF Siap Pakai</h4>
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <button @click="activeModal = 'gabungPDF'" class="bg-slate-50 border border-slate-100 p-3 rounded-xl hover:bg-slate-100 transition text-left cursor-pointer">
-                                    <i class="fa-solid fa-object-ungroup text-amber-500 mb-1"></i>
-                                    <h4 class="font-bold text-slate-800 text-xs">Gabung PDF</h4>
-                                </button>
-                                <button @click="activeModal = 'pisahPDF'" class="bg-slate-50 border border-slate-100 p-3 rounded-xl hover:bg-slate-100 transition text-left cursor-pointer">
-                                    <i class="fa-solid fa-scissors text-purple-500 mb-1"></i>
-                                    <h4 class="font-bold text-slate-800 text-xs">Pisah PDF</h4>
-                                </button>
-                                <button @click="activeModal = 'kompresFoto'" class="bg-slate-50 border border-slate-100 p-3 rounded-xl hover:bg-slate-100 transition text-left cursor-pointer">
-                                    <i class="fa-regular fa-image text-blue-500 mb-1"></i>
-                                    <h4 class="font-bold text-slate-800 text-xs">Kompres Foto</h4>
-                                </button>
-                                <button @click="activeModal = 'kompresPDF'" class="bg-slate-50 border border-slate-100 p-3 rounded-xl hover:bg-slate-100 transition text-left cursor-pointer">
-                                    <i class="fa-regular fa-file-pdf text-rose-500 mb-1"></i>
-                                    <h4 class="font-bold text-slate-800 text-xs">Kompres PDF</h4>
-                                </button>
-                            </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <button @click="activeModal = 'gabungPDF'" class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs hover:bg-slate-50 transition text-left cursor-pointer">
+                                <i class="fa-solid fa-object-ungroup text-amber-500 mb-2 text-base"></i>
+                                <h4 class="font-bold text-slate-800 text-xs">Gabung PDF</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Satukan dokumen</p>
+                            </button>
+                            <button @click="activeModal = 'pisahPDF'" class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs hover:bg-slate-50 transition text-left cursor-pointer">
+                                <i class="fa-solid fa-scissors text-purple-500 mb-2 text-base"></i>
+                                <h4 class="font-bold text-slate-800 text-xs">Pisah PDF</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Pecah halaman</p>
+                            </button>
                         </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <button @click="activeModal = 'kompresFoto'" class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs hover:bg-slate-50 transition text-left cursor-pointer">
+                                <i class="fa-regular fa-image text-blue-500 mb-2 text-base"></i>
+                                <h4 class="font-bold text-slate-800 text-xs">Kompres Foto</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Perkecil JPG/PNG</p>
+                            </button>
+                            <button @click="activeModal = 'kompresPDF'" class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs hover:bg-slate-50 transition text-left cursor-pointer">
+                                <i class="fa-regular fa-file-pdf text-rose-500 mb-2 text-base"></i>
+                                <h4 class="font-bold text-slate-800 text-xs">Kompres PDF</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Perkecil ukuran</p>
+                            </button>
+                        </div>
+
+                        <button @click="alert('Konverter Dokumen')" class="w-full bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs hover:bg-slate-50 transition flex items-center justify-between cursor-pointer">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-rotate text-emerald-500 text-sm"></i>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-800 text-xs">Konverter Dokumen</h4>
+                                    <p class="text-[10px] text-slate-400">Ubah Word ke PDF, dll.</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. MENU GAYA CETAK -->
-            <div x-show="currentTab === 'gaya-cetak'" class="space-y-6 max-w-7xl w-full mx-auto" style="display: none;">
-                <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak</h2>
-
-                <div class="space-y-3">
-                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PENGATURAN HEADER</span>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between lg:col-span-2">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-heading"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Label Header</h4>
-                                    <p class="text-[10px] text-slate-400">Pilih judul benar untuk dokumen kuitansi.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100">Kwitansi / "Kuitansi"</span>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-slate-100 text-slate-700 p-3 rounded-xl"><i class="fa-solid fa-hashtag"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Kotak No BKU</h4>
-                                    <p class="text-[10px] text-slate-400">Latar warna kotak nomor.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg">Warnawarni</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i class="fa-regular fa-image"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Logo Sekolah</h4>
-                                    <p class="text-[10px] text-slate-400">Sertakan logo instansi di header.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkanlogo</span>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i class="fa-solid fa-shield-halved"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Logo Pemprov</h4>
-                                    <p class="text-[10px] text-slate-400">Sertakan logo pemda di sisi kiri.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkanlogo</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-3 pt-2">
-                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">ISI KUITANSI</span>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between lg:col-span-2">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-purple-50 text-purple-600 p-3 rounded-xl"><i class="fa-solid fa-signature"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Tanda Tangan Digital</h4>
-                                    <p class="text-[10px] text-slate-400">Penggunaan metoda stempel dan ttd otomatis pada setiap kuitansi cetak.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">Kosong (Manual)</span>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-rose-50 text-rose-600 p-3 rounded-xl"><i class="fa-solid fa-stamp"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Pasang Materai</h4>
-                                    <p class="text-[10px] text-slate-400">Otomatis untuk > 5 Juta.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg border border-rose-100">Aktif (Otomatis)</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-user-tag"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Teks "Terima Dari"</h4>
-                                    <p class="text-[10px] text-slate-400">Jabatan penyerah dana.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100">Kepala Sekolah</span>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-amber-50 text-amber-600 p-3 rounded-xl"><i class="fa-solid fa-location-dot"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Tempat Penerimaan</h4>
-                                    <p class="text-[10px] text-slate-400">Sertakan kecamatan.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">#kecamatan</span>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl"><i class="fa-solid fa-id-card"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Label Identitas</h4>
-                                    <p class="text-[10px] text-slate-400">Awalan NIP/NUPTK/NIK.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-100">NIP</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-3 pt-2">
-                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">LAMPIRAN KUITANSI</span>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-folder-open"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Panel Lampiran</h4>
-                                    <p class="text-[10px] text-slate-400">Menu opsi di tabel penyusunan.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkan semua</span>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-slate-100 text-slate-700 p-3 rounded-xl"><i class="fa-solid fa-list-check"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Lembar Checklist</h4>
-                                    <p class="text-[10px] text-slate-400">Penyertaan halaman checklist.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkan</span>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-address-book"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Detail Penerima</h4>
-                                    <p class="text-[10px] text-slate-400">Status cetak Rekening & NPWP.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkanlogo</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-table-list"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm">Detail Barang</h4>
-                                    <p class="text-[10px] text-slate-400">Tambah tabel barang pada lembar kuitansi.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkanlogo</span>
-                        </div>
-
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between border-dashed border-emerald-300 bg-emerald-50/20 lg:col-span-2">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-emerald-100 text-emerald-700 p-3 rounded-xl"><i class="fa-solid fa-pen-nib"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-slate-900 text-sm">Editor Lembar Checklist</h4>
-                                    <p class="text-[10px] text-slate-500">Kustomisasi daftar kelengkapan ST Kelengkapan SPJ.</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-bold text-emerald-600">Kustomisasi daftar kelengkapan ST Kelengkapan SPJ.</span>
-                        </div>
-                    </div>
-                </div>
-
+            <!-- Gaya Cetak -->
+            <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
+                <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak & Format Kuitansi</h2>
             </div>
-
-            <div x-show="currentTab === 'pusat-cetak'" style="display: none;"><h2 class="text-xl font-bold">Pusat Cetak Dokumen SPJ</h2></div>
-            <div x-show="currentTab === 'setelan-akun'" style="display: none;"><h2 class="text-xl font-bold">Setelan Akun & Lembaga</h2></div>
+            <div x-show="currentTab === 'pusat-cetak'" style="display: none;"><h2 class="text-xl font-bold">Pusat Cetak</h2></div>
+            <div x-show="currentTab === 'setelan-akun'" style="display: none;"><h2 class="text-xl font-bold">Setelan Akun</h2></div>
         </main>
     </div>
 
-    <!-- MODAL POP-UP DASHBOARD -->
+    <!-- MODAL POP-UP -->
     <div x-show="activeModal === 'uploadBKU'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
