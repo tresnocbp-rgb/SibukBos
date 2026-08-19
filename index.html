@@ -7,103 +7,112 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { primary: '#1e40af' } }
-            }
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800" x-data="{ 
+<body class="bg-[#f0f4f8] font-sans text-slate-800" x-data="{ 
     isLoggedIn: false, 
     password: '', 
     loginError: false,
     currentTab: 'beranda', 
     tahun: '2026', 
     bulanAktif: 'Mei',
-    namaSekolah: 'SMKS TARUNA TERPADU 2',
-    daftarBulan: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+    daftarBulan: ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+    idleTimer: null,
     
     handleLogin() {
         if (this.password === 'admin123' || this.password === 'bos2026') {
             this.isLoggedIn = true;
             this.loginError = false;
+            this.resetIdleTimer();
         } else {
             this.loginError = true;
         }
-    }
-}">
+    },
 
-    <!-- HALAMAN LOGIN MODEREN -->
-    <div x-show="!isLoggedIn" class="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950">
-        <div class="bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl w-full max-w-md space-y-6 border border-white/20">
+    logout() {
+        this.isLoggedIn = false;
+        this.password = '';
+        clearTimeout(this.idleTimer);
+    },
+
+    resetIdleTimer() {
+        clearTimeout(this.idleTimer);
+        // Timer 15 Menit (15 * 60 * 1000 ms)
+        this.idleTimer = setTimeout(() => {
+            if(this.isLoggedIn) {
+                alert('Sesi Anda telah berakhir karena tidak ada aktivitas selama 15 menit.');
+                this.logout();
+            }
+        }, 900000);
+    }
+}" @mousemove="if(isLoggedIn) resetIdleTimer()" @keypress="if(isLoggedIn) resetIdleTimer()">
+
+    <!-- HALAMAN LOGIN -->
+    <div x-show="!isLoggedIn" class="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 to-blue-950">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
-                <div class="inline-flex bg-blue-900 text-white p-4 rounded-2xl text-2xl font-bold shadow-lg">
+                <div class="inline-flex bg-blue-900 text-white p-4 rounded-2xl text-2xl font-bold shadow">
                     <i class="fa-solid fa-file-invoice-dollar"></i>
                 </div>
-                <h1 class="text-2xl font-extrabold text-blue-900 tracking-wide">SIBUK BOS</h1>
-                <p class="text-xs text-slate-400 font-medium">Sistem Input & Pelaporan Dana BOS v2.7.6</p>
+                <h1 class="text-2xl font-extrabold text-blue-900">SIBUK BOS</h1>
+                <p class="text-xs text-slate-400">Sistem Input & Pelaporan Dana BOS v2.7.6</p>
             </div>
-
             <form @submit.prevent="handleLogin()" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">KATA SANDI AKSES</label>
-                    <input type="password" x-model="password" placeholder="Masukkan sandi (contoh: admin123)" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                    <input type="password" x-model="password" placeholder="Masukkan sandi (contoh: admin123)" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
-
                 <template x-if="loginError">
-                    <p class="text-xs text-red-500 font-semibold bg-red-50 p-2 rounded-lg text-center">Kata sandi salah! Coba gunakan: admin123</p>
+                    <p class="text-xs text-red-500 font-semibold bg-red-50 p-2 rounded-lg text-center">Kata sandi salah! Coba: admin123</p>
                 </template>
-
-                <button type="submit" class="w-full bg-blue-900 text-white py-3 rounded-xl font-bold text-sm shadow-lg hover:bg-blue-800 transition">
-                    Masuk Pusat Kendali
+                <button type="submit" class="w-full bg-blue-900 text-white py-3 rounded-xl font-bold text-sm shadow hover:bg-blue-800 transition">
+                    Masuk Aplikasi
                 </button>
             </form>
-            <div class="text-center pt-2 border-t border-slate-100">
-                <span class="text-[11px] text-slate-400">Sinkronisasi Otomatis Google Sheets & Vercel</span>
-            </div>
         </div>
     </div>
 
-    <!-- APLIKASI UTAMA -->
-    <div x-show="isLoggedIn" class="flex h-screen overflow-hidden" style="display: none;">
+    <!-- APLIKASI UTAMA DENGAN SIDEBAR PERSIS GAMBAR -->
+    <div x-show="isLoggedIn" class="flex h-screen overflow-hidden p-3 gap-3" style="display: none;">
         
-        <!-- SIDEBAR -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between hidden md:flex shadow-sm">
+        <!-- SIDEBAR MELENGKUNG (PERSIS GAMBAR) -->
+        <aside class="w-64 bg-white border border-slate-200/60 rounded-3xl flex flex-col justify-between shadow-sm p-4">
             <div>
-                <div class="p-6 border-b border-slate-100 flex items-center space-x-3">
-                    <div class="bg-blue-900 text-white p-2.5 rounded-xl font-bold text-lg shadow">
+                <!-- Logo & Versi -->
+                <div class="p-3 mb-4 flex items-center space-x-3 border-b border-slate-100 pb-4">
+                    <div class="bg-blue-900 text-white p-2.5 rounded-xl font-bold text-lg shadow-sm">
                         <i class="fa-solid fa-file-invoice-dollar"></i>
                     </div>
                     <div>
-                        <h1 class="font-extrabold text-blue-900 tracking-wide text-base">SIBUK BOS</h1>
-                        <span class="text-[10px] text-slate-400 font-semibold tracking-wider">Versi 2.7.6</span>
+                        <h1 class="font-extrabold text-blue-900 tracking-wide text-sm">SIBUK BOS</h1>
+                        <span class="text-[10px] text-slate-400 font-bold">Versi 2.7.6</span>
                     </div>
                 </div>
 
-                <nav class="p-4 space-y-1.5">
-                    <button @click="currentTab = 'beranda'" :class="currentTab === 'beranda' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900 shadow-xs' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-sm">
-                        <i class="fa-solid fa-house-chimney w-5"></i>
+                <!-- Menu Navigasi -->
+                <nav class="space-y-1">
+                    <button @click="currentTab = 'beranda'" :class="currentTab === 'beranda' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900 shadow-2xs' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-xs font-semibold">
+                        <i class="fa-solid fa-house-chimney w-4"></i>
                         <span>Beranda Utama</span>
                     </button>
-                    <button @click="currentTab = 'gaya-cetak'" :class="currentTab === 'gaya-cetak' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900 shadow-xs' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-sm">
-                        <i class="fa-solid fa-paintbrush w-5"></i>
+                    <button @click="currentTab = 'gaya-cetak'" :class="currentTab === 'gaya-cetak' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900 shadow-2xs' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-xs font-semibold">
+                        <i class="fa-solid fa-paintbrush w-4"></i>
                         <span>Gaya Cetak</span>
                     </button>
-                    <button @click="currentTab = 'pusat-cetak'" :class="currentTab === 'pusat-cetak' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900 shadow-xs' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-sm">
-                        <i class="fa-solid fa-print w-5"></i>
+                    <button @click="currentTab = 'pusat-cetak'" :class="currentTab === 'pusat-cetak' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900 shadow-2xs' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-xs font-semibold">
+                        <i class="fa-solid fa-print w-4"></i>
                         <span>Pusat Cetak</span>
                     </button>
-                    <button @click="currentTab = 'setelan-akun'" :class="currentTab === 'setelan-akun' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900 shadow-xs' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-sm">
-                        <i class="fa-solid fa-gear w-5"></i>
+                    <button @click="currentTab = 'setelan-akun'" :class="currentTab === 'setelan-akun' ? 'bg-blue-50 text-blue-900 font-bold border-l-4 border-blue-900 shadow-2xs' : 'text-slate-600 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-xl transition text-xs font-semibold">
+                        <i class="fa-solid fa-gear w-4"></i>
                         <span>Setelan Akun</span>
                     </button>
                 </nav>
             </div>
 
-            <div class="p-4 border-t border-slate-100">
-                <button @click="isLoggedIn = false; password = ''" class="w-full flex items-center space-x-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition font-semibold text-xs">
+            <!-- Tombol Akhiri Sesi di Bawah Sidebar -->
+            <div class="pt-4 border-t border-slate-100">
+                <button @click="logout()" class="w-full flex items-center space-x-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition font-bold text-xs">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Akhiri Sesi</span>
                 </button>
@@ -111,131 +120,175 @@
         </aside>
 
         <!-- KONTEN UTAMA -->
-        <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-            <div class="p-8 max-w-7xl mx-auto w-full space-y-6">
+        <main class="flex-1 flex flex-col h-full overflow-y-auto bg-white border border-slate-200/60 rounded-3xl p-6 shadow-sm">
+            
+            <!-- 1. BERANDA UTAMA -->
+            <div x-show="currentTab === 'beranda'" class="space-y-6">
+                
+                <h2 class="text-xl font-extrabold text-slate-900">Beranda Utama</h2>
 
-                <!-- 1. BERANDA UTAMA -->
-                <div x-show="currentTab === 'beranda'" class="space-y-6">
-                    
-                    <!-- Top Welcome & Tahun Anggaran -->
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-xs border border-slate-200/80 gap-4">
+                <!-- Header Selamat Pagi & Tahun Anggaran -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="lg:col-span-2 bg-gradient-to-r from-slate-50 to-blue-50/50 border border-slate-200/70 p-6 rounded-2xl flex flex-col justify-center">
+                        <h3 class="text-xl font-extrabold text-slate-900">Selamat Pagi, Pengguna!</h3>
+                        <p class="text-xs text-slate-500 mt-1">Selamat datang di pusat kendali. Semua ringkasan data dan alat pengelola SPJ Anda tersedia di sini.</p>
+                    </div>
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl flex items-center justify-between shadow-sm">
                         <div>
-                            <h2 class="text-2xl font-extrabold text-slate-900">Selamat Pagi, Pengguna!</h2>
-                            <p class="text-sm text-slate-500 mt-1">Selamat datang di pusat kendali. Semua ringkasan data dan alat pengelola SPJ Anda tersedia di sini.</p>
+                            <span class="text-[9px] tracking-widest text-slate-400 font-bold block">TAHUN ANGGARAN</span>
+                            <select x-model="tahun" class="bg-transparent text-white text-base font-extrabold focus:outline-none cursor-pointer mt-1">
+                                <option value="2026" class="text-slate-900">Tahun 2026</option>
+                                <option value="2025" class="text-slate-900">Tahun 2025</option>
+                            </select>
                         </div>
-                        <div class="bg-slate-900 text-white p-4 rounded-2xl w-full md:w-72 flex justify-between items-center shadow-md">
-                            <div>
-                                <span class="text-[10px] tracking-wider text-slate-400 font-bold block">TAHUN ANGGARAN</span>
-                                <select x-model="tahun" class="bg-transparent text-white text-base font-extrabold focus:outline-none cursor-pointer mt-0.5">
-                                    <option value="2026" class="text-slate-900">Tahun 2026</option>
-                                    <option value="2025" class="text-slate-900">Tahun 2025</option>
-                                    <option value="2024" class="text-slate-900">Tahun 2024</option>
-                                </select>
-                            </div>
-                            <div class="bg-white/10 p-2.5 rounded-xl text-blue-400">
-                                <i class="fa-regular fa-calendar-days text-xl"></i>
-                            </div>
+                        <div class="bg-white/10 p-3 rounded-xl text-blue-400">
+                            <i class="fa-regular fa-calendar-days text-xl"></i>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Statistik Grid & Pemilih Bulan (Sesuai Asli) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Baris Statistik & Pemilih Bulan -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex flex-col justify-between">
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wider">NO BKU TERAKHIR</span>
+                        <div class="text-2xl font-extrabold text-slate-800 my-3">-</div>
+                        <span class="text-[11px] text-slate-400">Belum ada data diunggah</span>
+                    </div>
+
+                    <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex flex-col justify-between">
+                        <span class="text-[10px] font-bold text-slate-400 tracking-wider">PROGRES SPJ</span>
+                        <div class="text-2xl font-extrabold text-emerald-600 my-3">0%</div>
+                        <span class="text-[11px] text-slate-400">Menunggu proses BKU</span>
+                    </div>
+
+                    <!-- Kotak Bulan (Persis Gambar Asli) -->
+                    <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-sm flex flex-col justify-between">
+                        <div class="grid grid-cols-6 gap-1 text-center">
+                            <template x-for="b in daftarBulan">
+                                <button @click="bulanAktif = b" 
+                                    :class="bulanAktif === b ? 'bg-blue-600 text-white font-bold' : 'bg-slate-800/80 text-slate-400 hover:text-white'"
+                                    class="py-1.5 rounded text-[10px] transition font-semibold" x-text="b">
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian Bawah: Aksi Cepat & Peralatan Dokumen (Persis Gambar Asli) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Kiri: Aksi Cepat -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">AKSI CEPAT</h3>
                         
-                        <!-- No BKU Terakhir -->
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-                            <span class="text-[11px] font-bold text-slate-400 tracking-wider">NO BKU TERAKHIR</span>
-                            <div class="text-3xl font-extrabold text-slate-900 my-4">BPU25</div>
-                            <span class="text-xs text-slate-500 font-medium">Terakhir diperbarui otomatis</span>
-                        </div>
-
-                        <!-- Progres SPJ -->
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
-                            <span class="text-[11px] font-bold text-slate-400 tracking-wider">PROGRES SPJ</span>
-                            <div class="text-3xl font-extrabold text-emerald-600 my-4">100%</div>
-                            <span class="text-xs text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded-lg w-max">Periode <span x-text="bulanAktif"></span> Selesai</span>
-                        </div>
-
-                        <!-- Pemilih Bulan Interaktif (12 Bulan Persis Gambar) -->
-                        <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-md flex flex-col justify-between">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-[11px] font-bold text-slate-400 tracking-wider">PILIH BULAN BKU</span>
-                                <span class="text-xs bg-blue-600/30 text-blue-300 px-2 py-0.5 rounded font-bold" x-text="tahun"></span>
-                            </div>
-                            <div class="grid grid-cols-6 gap-1.5">
-                                <template x-for="b in daftarBulan">
-                                    <button @click="bulanAktif = b" 
-                                        :class="bulanAktif === b ? 'bg-blue-600 text-white font-extrabold shadow-sm scale-105' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'"
-                                        class="py-2 rounded-lg text-xs transition font-semibold text-center" x-text="b">
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Aksi Cepat -->
-                    <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider pt-2">Aksi Cepat</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="md:col-span-2 bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 text-white p-6 rounded-2xl shadow-md cursor-pointer hover:shadow-lg transition flex items-center justify-between" onclick="alert('Fitur Upload BKU PDF Arkas: Data akan diekstrak dan disimpan ke Spreadsheet sesuai Tahun & Bulan aktif.')">
+                        <!-- Upload BKU Baru (Interaktif PDF Parser) -->
+                        <label class="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white p-6 rounded-2xl shadow-md cursor-pointer hover:opacity-95 transition flex items-center justify-between block">
                             <div class="flex items-center space-x-4">
                                 <div class="bg-white/10 p-4 rounded-2xl">
                                     <i class="fa-solid fa-cloud-arrow-up text-2xl text-blue-200"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-lg font-bold">Upload BKU Baru (<span x-text="bulanAktif"></span> <span x-text="tahun"></span>)</h4>
-                                    <p class="text-xs text-blue-200 mt-1">Ekstrak otomatis PDF BKU dari Arkas menjadi data kuitansi siap cetak.</p>
+                                    <h4 class="text-base font-bold">Upload BKU Baru</h4>
+                                    <p class="text-xs text-blue-200 mt-0.5">Ekstrak otomatis PDF BKU dari Arkas menjadi data kuitansi siap cetak.</p>
                                 </div>
                             </div>
-                            <i class="fa-solid fa-chevron-right text-blue-300 text-sm pr-2"></i>
-                        </div>
+                            <input type="file" accept=".pdf" class="hidden" @change="alert('File PDF BKU berhasil dipilih! Sistem sedang mengekstrak data transaksi untuk bulan ' + bulanAktif + ' ' + tahun + '...')">
+                        </label>
 
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs cursor-pointer hover:bg-slate-50 transition flex flex-col justify-between" onclick="alert('Membuka menu penyesuaian data rincian kuitansi.')">
-                            <div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Fitur Sesuaikan Data')">
                                 <div class="flex items-center space-x-3 mb-2">
                                     <div class="bg-blue-50 text-blue-900 p-2.5 rounded-xl"><i class="fa-solid fa-pen-to-square"></i></div>
-                                    <h4 class="font-bold text-slate-900 text-base">Sesuaikan Data</h4>
+                                    <h4 class="font-bold text-slate-800 text-sm">Sesuaikan Data</h4>
                                 </div>
-                                <p class="text-xs text-slate-500 mt-2">Ubah rincian, perbaiki nama penerima, dan edit nominal.</p>
+                                <p class="text-xs text-slate-500">Ubah rincian, perbaiki nama penerima, dan edit nominal.</p>
                             </div>
-                            <span class="text-xs font-semibold text-blue-600 mt-4 flex items-center">Kelola data <i class="fa-solid fa-arrow-right ml-1"></i></span>
+
+                            <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Fitur Input Manual')">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl"><i class="fa-solid fa-file-circle-plus"></i></div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Input Manual</h4>
+                                </div>
+                                <p class="text-xs text-slate-500">Buat kuitansi satuan mendadak tanpa menyimpannya ke database.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-red-50/50 transition flex items-center justify-between" onclick="confirm('Yakin ingin mengosongkan data BKU bulanan?')">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-red-50 text-red-600 p-2.5 rounded-xl"><i class="fa-solid fa-trash-can text-sm"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-xs">Kosongkan Data BKU Bulanan</h4>
+                                    <p class="text-[11px] text-slate-400">Hapus sementara data periode ini.</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs pr-2"></i>
                         </div>
                     </div>
 
-                </div>
+                    <!-- Kanan: Peralatan Dokumen (Persis Gambar Asli) -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PERALATAN DOKUMEN</h3>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Gabung PDF')">
+                                <i class="fa-solid fa-object-ungroup text-amber-500 mb-2 text-base"></i>
+                                <h4 class="font-bold text-slate-800 text-xs">Gabung PDF</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Satukan dokumen</p>
+                            </div>
+                            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Pisah PDF')">
+                                <i class="fa-solid fa-scissors text-purple-500 mb-2 text-base"></i>
+                                <h4 class="font-bold text-slate-800 text-xs">Pisah PDF</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Pecah halaman</p>
+                            </div>
+                        </div>
 
-                <!-- 2. GAYA CETAK -->
-                <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-                        <h2 class="text-xl font-bold text-slate-900">Gaya Cetak & Format Dokumen</h2>
-                        <p class="text-sm text-slate-500 mt-1">Pengaturan tata letak header, tanda tangan digital, materai, dan panel lampiran.</p>
-                    </div>
-                </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Kompres Foto')">
+                                <i class="fa-regular fa-image text-blue-500 mb-2 text-base"></i>
+                                <h4 class="font-bold text-slate-800 text-xs">Kompres Foto</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Perkecil JPG/PNG</p>
+                            </div>
+                            <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition" onclick="alert('Kompres PDF')">
+                                <i class="fa-regular fa-file-pdf text-rose-500 mb-2 text-base"></i>
+                                <h4 class="font-bold text-slate-800 text-xs">Kompres PDF</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Perkecil ukuran</p>
+                            </div>
+                        </div>
 
-                <!-- 3. PUSAT CETAK -->
-                <div x-show="currentTab === 'pusat-cetak'" class="space-y-6" style="display: none;">
-                    <div class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-6 rounded-2xl shadow-md">
-                        <h2 class="text-xl font-bold">Pusat Cetak Dokumen SPJ</h2>
-                        <p class="text-xs text-blue-200 mt-1">Cetak rekapitulasi BKU bulanan dan kuitansi massal secara otomatis.</p>
-                    </div>
-                </div>
-
-                <!-- 4. SETELAN AKUN -->
-                <div x-show="currentTab === 'setelan-akun'" class="space-y-6" style="display: none;">
-                    <div class="bg-gradient-to-r from-blue-900 to-slate-900 text-white p-6 rounded-2xl shadow-md flex items-center space-x-4">
-                        <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-xl font-bold">SMK</div>
-                        <div>
-                            <h2 class="text-xl font-bold" x-text="namaSekolah"></h2>
-                            <p class="text-xs text-slate-300 mt-1">NPSN: 20231440 | Kab. Bogor, Jawa Barat</p>
+                        <div class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:bg-slate-50 transition flex items-center justify-between" onclick="alert('Konverter Dokumen')">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-rotate text-emerald-500 text-sm"></i>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-xs">Konverter Dokumen</h4>
+                                    <p class="text-[10px] text-slate-400">Ubah Word ke PDF, dll.</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-                        <h4 class="font-bold text-slate-800 mb-2"><i class="fa-solid fa-user-tie text-blue-900 mr-2"></i> Konfigurasi Database Spreadsheet</h4>
-                        <p class="text-xs text-slate-500 mb-4">Data profil sekolah, pejabat penanggung jawab, dan BKU tahunan terhubung langsung melalui Google Apps Script.</p>
-                        <button onclick="alert('Sinkronisasi Google Spreadsheet berhasil.')" class="bg-blue-900 text-white text-xs px-4 py-2.5 rounded-xl font-bold shadow hover:bg-blue-800 transition">Perbarui Koneksi Spreadsheet</button>
-                    </div>
+
                 </div>
 
             </div>
+
+            <!-- 2. GAYA CETAK -->
+            <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
+                <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak & Format Kuitansi</h2>
+                <p class="text-xs text-slate-500">Atur tata letak header, tanda tangan digital, materai, dan panel lampiran.</p>
+            </div>
+
+            <!-- 3. PUSAT CETAK -->
+            <div x-show="currentTab === 'pusat-cetak'" class="space-y-6" style="display: none;">
+                <h2 class="text-xl font-extrabold text-slate-900">Pusat Cetak Dokumen SPJ</h2>
+                <p class="text-xs text-slate-500">Cetak rekapitulasi BKU bulanan dan kuitansi massal secara otomatis.</p>
+            </div>
+
+            <!-- 4. SETELAN AKUN -->
+            <div x-show="currentTab === 'setelan-akun'" class="space-y-6" style="display: none;">
+                <h2 class="text-xl font-extrabold text-slate-900">Setelan Akun & Lembaga</h2>
+                <p class="text-xs text-slate-500">Konfigurasi profil sekolah, NPSN, dan pejabat penanggung jawab.</p>
+            </div>
+
         </main>
     </div>
 
