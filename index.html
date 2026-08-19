@@ -141,7 +141,7 @@
         }
     },
 
-cetakKuitansiManual() {
+    cetakKuitansiManual() {
         if(!this.manualKuitansi.noBukti || !this.manualKuitansi.nominal) {
             alert('Mohon isi No. Bukti dan Nominal terlebih dahulu!');
             return;
@@ -197,9 +197,7 @@ cetakKuitansiManual() {
                         <p><b>( Besse Warni )</b></p>
                     </div>
                 </div>
-                <script>
-                    window.onload = function() { window.print(); }
-                </script>
+                <script>window.onload = function() { window.print(); }</script>
             </body>
             </html>
         `);
@@ -404,58 +402,59 @@ cetakKuitansiManual() {
                 </div>
             </div>
 
-            <!-- 2. MENU GAYA CETAK (PERSIS GAMBAR F0A14B) -->
+            <!-- 2. MENU GAYA CETAK (100% PERSIS SEPERTI GAMBAR F0AC8C) -->
             <div x-show="currentTab === 'gaya-cetak'" class="space-y-6 max-w-7xl w-full mx-auto" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak</h2>
 
                 <!-- PENGATURAN HEADER -->
                 <div class="space-y-3">
                     <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PENGATURAN HEADER</span>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between lg:col-span-2">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-heading"></i></div>
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-heading"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Label Header</h4>
                                     <p class="text-[10px] text-slate-400">Pilih judul benar untuk dokumen kuitansi.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100">Kwitansi / "Kuitansi"</span>
                         </div>
 
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between md:col-span-2">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-slate-100 text-slate-700 p-2.5 rounded-xl"><i class="fa-solid fa-hashtag"></i></div>
+                                <div class="bg-slate-100 text-slate-700 p-3 rounded-xl"><i class="fa-solid fa-hashtag"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Kotak No BKU</h4>
-                                    <p class="text-[10px] text-slate-400">Latar warna kotak nomor memo.</p>
+                                    <p class="text-[10px] text-slate-400">Latar warna kotak nomor.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">Default</span>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg">Warnawarni</span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl"><i class="fa-regular fa-image"></i></div>
+                                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i class="fa-regular fa-image"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Logo Sekolah</h4>
-                                    <p class="text-[10px] text-slate-400">Tampilkan logo instansi di header.</p>
+                                    <p class="text-[10px] text-slate-400">Sertakan logo instansi di header.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Ditampilkan</span>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkanlogo</span>
                         </div>
 
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl"><i class="fa-solid fa-shield-halved"></i></div>
+                                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i class="fa-solid fa-shield-halved"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Logo Pemprov</h4>
                                     <p class="text-[10px] text-slate-400">Sertakan logo pemda di sisi kiri.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Ditampilkan</span>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkanlogo</span>
                         </div>
                     </div>
                 </div>
@@ -464,62 +463,62 @@ cetakKuitansiManual() {
                 <div class="space-y-3 pt-2">
                     <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">ISI KUITANSI</span>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between md:col-span-2">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between lg:col-span-2">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-purple-50 text-purple-600 p-2.5 rounded-xl"><i class="fa-solid fa-signature"></i></div>
+                                <div class="bg-purple-50 text-purple-600 p-3 rounded-xl"><i class="fa-solid fa-signature"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Tanda Tangan Digital</h4>
                                     <p class="text-[10px] text-slate-400">Penggunaan metoda stempel dan ttd otomatis pada setiap kuitansi cetak.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg">Otomatis</span>
+                            <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">Kosong (Manual)</span>
                         </div>
 
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-rose-50 text-rose-600 p-2.5 rounded-xl"><i class="fa-solid fa-stamp"></i></div>
+                                <div class="bg-rose-50 text-rose-600 p-3 rounded-xl"><i class="fa-solid fa-stamp"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Pasang Materai</h4>
                                     <p class="text-[10px] text-slate-400">Otomatis untuk > 5 Juta.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-rose-50 text-rose-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                            <span class="text-[10px] font-bold bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg border border-rose-100">Aktif (Otomatis)</span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-user-tag"></i></div>
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-user-tag"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Teks "Terima Dari"</h4>
                                     <p class="text-[10px] text-slate-400">Jabatan penyerah dana.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">Kepala Sekolah</span>
+                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100">Kepala Sekolah</span>
                         </div>
 
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-amber-50 text-amber-600 p-2.5 rounded-xl"><i class="fa-solid fa-location-dot"></i></div>
+                                <div class="bg-amber-50 text-amber-600 p-3 rounded-xl"><i class="fa-solid fa-location-dot"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Tempat Penerimaan</h4>
                                     <p class="text-[10px] text-slate-400">Sertakan kecamatan.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg">#kecamatan</span>
+                            <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100">#kecamatan</span>
                         </div>
 
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl"><i class="fa-solid fa-id-card"></i></div>
+                                <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl"><i class="fa-solid fa-id-card"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Label Identitas</h4>
                                     <p class="text-[10px] text-slate-400">Awalan NIP/NUPTK/NIK.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg">NIP</span>
+                            <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-100">NIP</span>
                         </div>
                     </div>
                 </div>
@@ -528,62 +527,62 @@ cetakKuitansiManual() {
                 <div class="space-y-3 pt-2">
                     <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">LAMPIRAN KUITANSI</span>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-folder-open"></i></div>
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-folder-open"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Panel Lampiran</h4>
                                     <p class="text-[10px] text-slate-400">Menu opsi di tabel penyusunan.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkan semua</span>
                         </div>
 
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-slate-100 text-slate-700 p-2.5 rounded-xl"><i class="fa-solid fa-list-check"></i></div>
+                                <div class="bg-slate-100 text-slate-700 p-3 rounded-xl"><i class="fa-solid fa-list-check"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Lembar Checklist</h4>
                                     <p class="text-[10px] text-slate-400">Penyertaan halaman checklist.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">Aktif</span>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkan</span>
                         </div>
 
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-address-book"></i></div>
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-address-book"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Detail Penerima</h4>
                                     <p class="text-[10px] text-slate-400">Status cetak Rekening & NPWP.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkanlogo</span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl"><i class="fa-solid fa-table-list"></i></div>
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-table-list"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Detail Barang</h4>
                                     <p class="text-[10px] text-slate-400">Tambah tabel barang pada lembar kuitansi.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">Aktif</span>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">#tampilkanlogo</span>
                         </div>
 
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between border-dashed border-emerald-300 bg-emerald-50/20">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between border-dashed border-emerald-300 bg-emerald-50/20 lg:col-span-2">
                             <div class="flex items-center space-x-3">
-                                <div class="bg-emerald-100 text-emerald-700 p-2.5 rounded-xl"><i class="fa-solid fa-pen-nib"></i></div>
+                                <div class="bg-emerald-100 text-emerald-700 p-3 rounded-xl"><i class="fa-solid fa-pen-nib"></i></div>
                                 <div>
                                     <h4 class="font-bold text-slate-900 text-sm">Editor Lembar Checklist</h4>
                                     <p class="text-[10px] text-slate-500">Kustomisasi daftar kelengkapan ST Kelengkapan SPJ.</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-xl shadow-xs">Edit</span>
+                            <span class="text-[10px] font-bold text-emerald-600">Kustomisasi daftar kelengkapan ST Kelengkapan SPJ.</span>
                         </div>
                     </div>
                 </div>
@@ -595,7 +594,7 @@ cetakKuitansiManual() {
         </main>
     </div>
 
-    <!-- MODAL POP-UP DASHBOARD UTAMA -->
+    <!-- MODAL POP-UP DASHBOARD -->
     <div x-show="activeModal === 'uploadBKU'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
@@ -613,7 +612,6 @@ cetakKuitansiManual() {
         </div>
     </div>
 
-    <!-- Modal Sesuaikan Data -->
     <div x-show="activeModal === 'sesuaikanData'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -631,7 +629,6 @@ cetakKuitansiManual() {
         </div>
     </div>
 
-    <!-- Modal Input Manual -->
     <div x-show="activeModal === 'inputManual'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
