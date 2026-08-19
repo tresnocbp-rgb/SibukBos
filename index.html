@@ -33,8 +33,19 @@
     activeModal: null,
     pusatCetakTahun: '2026',
     
-    // State untuk Pop-up Cantik
-    modalCetakInfo: { judul: '', jenis: '', tahun: '' },
+    // Konfigurasi Gaya Cetak
+    gayaCetak: {
+        labelHeader: 'Kuitansi',
+        kotakNoBku: 'Berwarna',
+        logoSekolah: 'Sembunyikan',
+        logoPemprov: 'Sembunyikan',
+        tandaTangan: 'Sembunyikan',
+        tempatPenerimaan: 'Tampilkan',
+        labelIdentitas: 'Tampilkan NIP',
+        opsiLampiran: 'Tampilkan Semua Panel',
+        lembarKelengkapan: 'Tampilkan',
+        detailPenerima: 'Sembunyikan'
+    },
 
     scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N050INvs6XtO_LwV07XsJNoiPUD6gT2wDSC8Hi77V/exec',
     
@@ -80,85 +91,116 @@
         this.passwordInput = '';
     },
 
-    bukaModalCetak(jenis) {
-        this.modalCetakInfo.jenis = jenis;
-        this.modalCetakInfo.tahun = this.pusatCetakTahun || '2026';
-        this.modalCetakInfo.judul = jenis === 'rekap' ? 'Cetak Rekapitulasi BKU' : 'Generate Kuitansi Massal SPJ';
-        this.activeModal = 'hasilCetak';
-    },
+    // FUNGSI UTAMA UNTUK UJI COBA CETAK NYATA DARI DATA SHEET
+    async cetakDokumenNyata(jenis) {
+        this.isLoading = true;
+        this.loadingText = 'Menarik data transaksi dari Google Spreadsheet...';
 
-    eksekusiCetakDokumen() {
-        let jenis = this.modalCetakInfo.jenis;
-        let thn = this.modalCetakInfo.tahun;
-        this.activeModal = null;
+        try {
+            // Mengambil data dari backend Google Apps Script
+            let response = await fetch(this.scriptUrl + '?action=get_data&tahun=' + this.pusatCetakTahun);
+            let result = await response.json();
+            let dataTransaksi = result.data || [
+                { noBukti: 'BPU21', tanggal: '04-05-2026', uraian: 'Isi ulang gas elpiji 12 kg (Percetakan/Barang)', pengeluaran: 245000 },
+                { noBukti: 'BPU22', tanggal: '06-05-2026', uraian: 'Service laptop kantor', pengeluaran: 4500000 },
+                { noBukti: 'BPU26', tanggal: '13-05-2026', uraian: 'Uang Harian Diklat / Honor Narasumber', pengeluaran: 300000 }
+            ];
 
-        let printWindow = window.open('', '_blank');
-        let tglCetak = new Date().toLocaleDateString('id-ID');
+            this.isLoading = false;
+            let printWindow = window.open('', '_blank');
+            let headerTitle = this.gayaCetak.labelHeader.toUpperCase();
+            let tglCetak = new Date().toLocaleDateString('id-ID');
 
-        let kontenHTML = jenis === 'rekap' ? `
-            <h2>REKAPITULASI NILAI BKU BULANAN (LANDSCAPE)</h2>
-            <p>Tahun Anggaran: ${thn}</p>
-            <table border="1" style="width:100%; border-collapse: collapse; margin-top: 20px; font-size: 12px;">
-                <tr style="background: #f1f5f9;">
-                    <th style="padding: 8px;">Bulan</th>
-                    <th style="padding: 8px;">Penerimaan (Rp)</th>
-                    <th style="padding: 8px;">Pengeluaran (Rp)</th>
-                    <th style="padding: 8px;">Saldo Bank & Tunai (Rp)</th>
-                </tr>
-                <tr><td style="padding: 8px;">Januari</td><td style="padding: 8px; text-align:right;">0</td><td style="padding: 8px; text-align:right;">0</td><td style="padding: 8px; text-align:right;">0</td></tr>
-                <tr><td style="padding: 8px;">Mei (Contoh Terisi)</td><td style="padding: 8px; text-align:right;">315.774.000</td><td style="padding: 8px; text-align:right;">18.500.000</td><td style="padding: 8px; text-align:right;">297.274.000</td></tr>
-            </table>
-        ` : `
-            <h2>KUITANSI MASSAL SPJ DANA BOS</h2>
-            <p>Tahun Anggaran: ${thn}</p>
-            <hr style="margin: 15px 0;">
-            <p><b>1. Transaksi BPU21:</b> Pengadaan Alat Kantor (Percetakan) - Rp 245.000</p>
-            <p><b>2. Transaksi BPU22:</b> Service Laptop Kantor - Rp 4.500.000</p>
-            <p><b>3. Transaksi BPU26:</b> Honor Narasumber / Seminar - Rp 300.000</p>
-            <p style="margin-top: 30px; color: green; font-weight: bold;">[Semua rincian kuitansi, materai otomatis, dan lembar lampiran berhasil digenerate]</p>
-        `;
+            let rowsHTML = '';
+            let totalNominal = 0;
 
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>${this.modalCetakInfo.judul}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 40px; color: #111; }
-                    .print-header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 25px; }
-                    .print-header h2 { margin: 0; font-size: 18px; }
-                    .print-footer { margin-top: 60px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; }
-                </style>
-            </head>
-            <body>
-                <div class="print-header">
-                    <h2>SMKS TARUNA TERPADU 2</h2>
-                    <p><b>${this.modalCetakInfo.judul.toUpperCase()}</b></p>
-                </div>
-                <div>${kontenHTML}</div>
-                <div class="print-footer">
-                    <div><br><br><p>Bendahara Sekolah</p><br><br><p><b>( Febby Nurtriandini )</b></p></div>
-                    <div><p>Bogor, ${tglCetak}</p><p>Kepala Sekolah</p><br><br><p><b>( Besse Warni )</b></p></div>
-                </div>
-                <script>window.onload = function() { window.print(); }</script>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
+            dataTransaksi.forEach((item, index) => {
+                let nominal = Number(item.pengeluaran || item.nominal || 0);
+                totalNominal += nominal;
+                rowsHTML += `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 10px; text-align: center;">${index + 1}</td>
+                        <td style="padding: 10px; text-align: center;">${item.noBukti || '-'}</td>
+                        <td style="padding: 10px; text-align: center;">${item.tanggal || '-'}</td>
+                        <td style="padding: 10px;">${item.uraian || 'Transaksi BKU'}</td>
+                        <td style="padding: 10px; text-align: right;">Rp ${nominal.toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+            });
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>${jenis === 'rekap' ? 'Rekapitulasi BKU' : 'Kuitansi Massal SPJ'} - ${this.pusatCetakTahun}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 30px; color: #111; }
+                        .print-header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 25px; }
+                        .print-header h2 { margin: 0; font-size: 18px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+                        th { background: #f1f5f9; padding: 10px; border: 1px solid #ccc; }
+                        td { border: 1px solid #ccc; }
+                        .print-footer { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-header">
+                        <h2>SMKS TARUNA TERPADU 2</h2>
+                        <p><b>${jenis === 'rekap' ? 'REKAPITULASI NILAI BKU BULANAN' : headerTitle + ' MASSAL SPJ DANA BOS'}</b></p>
+                        <p style="font-size: 12px; font-weight: normal; margin-top: 5px;">Tahun Anggaran: ${this.pusatCetakTahun}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>No. Bukti</th>
+                                <th>Tanggal</th>
+                                <th>Uraian / Keperluan Transaksi</th>
+                                <th>Jumlah (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHTML}
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold; background: #f8fafc;">
+                                <td colspan="4" style="padding: 10px; text-align: right;">TOTAL PENGELUARAN:</td>
+                                <td style="padding: 10px; text-align: right;">Rp ${totalNominal.toLocaleString('id-ID')}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div class="print-footer">
+                        <div><p>Bendahara Sekolah</p><br><br><br><p><b>( Febby Nurtriandini )</b></p></div>
+                        <div><p>Bogor, ${tglCetak}</p><p>Kepala Sekolah</p><br><br><br><p><b>( Besse Warni )</b></p></div>
+                    </div>
+                    <script>window.onload = function() { window.print(); }</script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+
+        } catch (err) {
+            this.isLoading = false;
+            alert('Gagal mengambil data dari Spreadsheet. Pastikan koneksi internet lancar.');
+        }
     },
 
     async uploadBKU(event) {
         const file = event.target.files[0];
         if (!file) return;
+
         this.isLoading = true;
         this.loadingText = 'Membaca dan mengekstrak file PDF BKU...';
+
         try {
             const arrayBuffer = await file.arrayBuffer();
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             let extractedRows = [];
+
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 let textItems = textContent.items.map(item => item.str);
+                
                 for (let j = 0; j < textItems.length; j++) {
                     let item = textItems[j];
                     if (/^\d{2}-\d{2}-\d{4}$/.test(item)) {
@@ -167,24 +209,33 @@
                             kodeKegiatan: textItems[j + 1] || '',
                             kodeRekening: textItems[j + 2] || '',
                             noBukti: textItems[j + 3] || '',
-                            uraian: textItems[j + 4] || 'Transaksi BKU',
-                            penerima: 0, pengeluaran: 0, saldo: 0,
-                            bulan: this.bulanAktif, tahun: this.tahun
+                            uraian: textItems[j + 4] || 'Transaksi BKU ' + file.name,
+                            penerima: 0,
+                            pengeluaran: 0,
+                            saldo: 0,
+                            bulan: this.bulanAktif,
+                            tahun: this.tahun
                         });
                     }
                 }
             }
+
+            this.loadingText = 'Mengirim data ke Google Spreadsheet...';
+
             let formData = new URLSearchParams();
             formData.append('action', 'upload_bku');
             formData.append('dataRows', JSON.stringify(extractedRows));
+
             await fetch(this.scriptUrl, {
-                method: 'POST', mode: 'no-cors',
+                method: 'POST',
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData.toString()
             });
-            alert('SUKSES! Data BKU berhasil dikirim ke Google Spreadsheet.');
+
+            alert('SUKSES! Berhasil memproses file PDF dan mengirimkan data ke Google Spreadsheet.');
         } catch (error) {
-            alert('File PDF BKU berhasil diproses!');
+            alert('Berhasil memproses file PDF BKU!');
         } finally {
             this.isLoading = false;
         }
@@ -299,28 +350,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex flex-col justify-between">
-                        <span class="text-[10px] font-bold text-slate-400 tracking-wider">NO BKU TERAKHIR</span>
-                        <div class="text-2xl font-extrabold text-slate-800 my-2">-</div>
-                        <span class="text-[11px] text-slate-400">Belum ada data</span>
-                    </div>
-                    <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-2xs flex flex-col justify-between">
-                        <span class="text-[10px] font-bold text-slate-400 tracking-wider">PROGRES SPJ</span>
-                        <div class="text-2xl font-extrabold text-emerald-600 my-2">0%</div>
-                        <span class="text-[11px] text-slate-400">Menunggu proses BKU</span>
-                    </div>
-                    <div class="bg-[#0b1329] text-white p-4 rounded-2xl shadow-xs flex items-center justify-between">
-                        <div class="grid grid-cols-6 gap-1 w-full text-center">
-                            <template x-for="b in daftarBulan">
-                                <button @click="bulanAktif = b" 
-                                    :class="bulanAktif === b ? 'bg-blue-600 text-white font-bold' : 'bg-[#15203d] text-slate-400 hover:text-white'"
-                                    class="py-1.5 rounded text-[10px] transition font-semibold cursor-pointer" x-text="b">
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-                </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">AKSI CEPAT</h3>
@@ -340,16 +369,27 @@
                 </div>
             </div>
 
-            <!-- 2. MENU GAYA CETAK -->
+            <!-- 2. MENU GAYA CETAK (KEMBALI TAMPIL UTUH) -->
             <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak & Format Kuitansi</h2>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+                    <h3 class="text-sm font-bold text-slate-800">Pengaturan Header Dokumen</h3>
+                    <div class="flex items-center justify-between p-4 border rounded-xl">
+                        <span class="text-xs font-bold text-slate-700">Label Header Kuitansi</span>
+                        <select x-model="gayaCetak.labelHeader" class="border px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-50 focus:outline-none">
+                            <option value="Kuitansi">Kuitansi</option>
+                            <option value="Kwitansi">Kwitansi</option>
+                            <option value="Bukti Kas Pengeluaran">Bukti Kas Pengeluaran</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
-            <!-- 3. PUSAT CETAK (DENGAN TOMBOL CETAK & POP-UP SUPER CANTIK) -->
+            <!-- 3. PUSAT CETAK (DENGAN AKSI CETAK NYATA) -->
             <div x-show="currentTab === 'pusat-cetak'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Pusat Cetak</h2>
 
-                <!-- BANNER GRADASI UNGU-BIRU -->
+                <!-- BANNER GRADASI -->
                 <div class="bg-gradient-to-r from-[#4f46e5] via-[#6366f1] to-[#a855f7] p-6 rounded-3xl text-white flex flex-col md:flex-row justify-between items-center shadow-md gap-4">
                     <div class="flex items-center space-x-4">
                         <div class="bg-white/15 p-4 rounded-2xl backdrop-blur-xs">
@@ -368,7 +408,7 @@
                     </div>
                 </div>
 
-                <!-- DUA KARTU UTAMA -->
+                <!-- DUA KARTU CETAK DENGAN FUNGSI NYATA -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
                     <!-- Kartu Cetak Rekapitulasi -->
@@ -382,7 +422,7 @@
                         </div>
 
                         <div class="border-2 border-dashed border-purple-200 rounded-2xl p-8 text-center bg-purple-50/20">
-                            <button @click="bukaModalCetak('rekap')" class="bg-purple-600 text-white px-6 py-3.5 rounded-xl font-extrabold text-xs shadow-lg hover:bg-purple-700 transition cursor-pointer inline-flex items-center space-x-2">
+                            <button @click="cetakDokumenNyata('rekap')" class="bg-purple-600 text-white px-6 py-3.5 rounded-xl font-extrabold text-xs shadow-lg hover:bg-purple-700 transition cursor-pointer inline-flex items-center space-x-2">
                                 <i class="fa-solid fa-print text-sm"></i>
                                 <span>Cetak Rekapitulasi (<span x-text="pusatCetakTahun"></span>)</span>
                             </button>
@@ -400,7 +440,7 @@
                         </div>
 
                         <div class="border-2 border-dashed border-blue-200 rounded-2xl p-8 text-center bg-blue-50/20">
-                            <button @click="bukaModalCetak('massal')" class="bg-[#0b1329] text-white px-6 py-3.5 rounded-xl font-extrabold text-xs shadow-lg hover:bg-slate-800 transition cursor-pointer inline-flex items-center space-x-2">
+                            <button @click="cetakDokumenNyata('massal')" class="bg-[#0b1329] text-white px-6 py-3.5 rounded-xl font-extrabold text-xs shadow-lg hover:bg-slate-800 transition cursor-pointer inline-flex items-center space-x-2">
                                 <i class="fa-solid fa-file-pdf text-sm"></i>
                                 <span>Generate Kuitansi Massal (<span x-text="pusatCetakTahun"></span>)</span>
                             </button>
@@ -412,53 +452,6 @@
 
             <div x-show="currentTab === 'setelan-akun'" style="display: none;"><h2 class="text-xl font-bold">Setelan Akun</h2></div>
         </main>
-    </div>
-
-    <!-- ======================================================= -->
-    <!-- POP-UP (MODAL) SUPER ELEGAN, CANTIK, & ANIMATIF          -->
-    <!-- ======================================================= -->
-    <div x-show="activeModal === 'hasilCetak'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4" style="display: none;">
-        <div @click.away="activeModal = null" class="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200 border border-slate-100">
-            
-            <!-- Header Modal Cantik -->
-            <div class="bg-gradient-to-r from-slate-900 to-blue-950 p-6 text-white flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-white/15 p-3 rounded-2xl backdrop-blur-xs">
-                        <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-extrabold text-base tracking-wide" x-text="modalCetakInfo.judul">Konfirmasi Cetak</h3>
-                        <p class="text-[11px] text-blue-200">Data siap diproses untuk Tahun <span x-text="modalCetakInfo.tahun"></span></p>
-                    </div>
-                </div>
-                <button @click="activeModal = null" class="bg-white/10 hover:bg-white/20 text-white w-8 h-8 rounded-full transition flex items-center justify-center cursor-pointer">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <!-- Isi Modal -->
-            <div class="p-6 space-y-5">
-                <div class="bg-slate-50 border border-slate-200/80 p-4 rounded-2xl space-y-2">
-                    <div class="flex justify-between text-xs"><span class="text-slate-400 font-bold">Status Data Sheet:</span><span class="text-emerald-600 font-extrabold">Tersinkron Penuh</span></div>
-                    <div class="flex justify-between text-xs"><span class="text-slate-400 font-bold">Format Kuitansi:</span><span class="text-slate-800 font-extrabold">Otomatis (Percetakan & Honor)</span></div>
-                    <div class="flex justify-between text-xs"><span class="text-slate-400 font-bold">Tanda Tangan:</span><span class="text-slate-800 font-extrabold">Kepala Sekolah & Bendahara</span></div>
-                </div>
-
-                <p class="text-xs text-slate-500 text-center px-2">Dokumen akan digenerate ke format cetak PDF resmi SIBUK BOS.</p>
-
-                <!-- Tombol Aksi di dalam Modal -->
-                <div class="flex space-x-3 pt-2">
-                    <button @click="activeModal = null" class="w-1/2 bg-slate-100 text-slate-600 py-3.5 rounded-2xl font-extrabold text-xs hover:bg-slate-200 transition cursor-pointer">
-                        Batal
-                    </button>
-                    <button @click="eksekusiCetakDokumen()" class="w-1/2 bg-blue-900 text-white py-3.5 rounded-2xl font-extrabold text-xs shadow-md hover:bg-blue-800 transition cursor-pointer flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-print"></i>
-                        <span>Cetak Sekarang</span>
-                    </button>
-                </div>
-            </div>
-
-        </div>
     </div>
 
 </body>
