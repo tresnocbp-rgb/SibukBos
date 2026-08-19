@@ -19,169 +19,7 @@
         }
     </script>
 </head>
-<body class="bg-[#f0f4f8] font-sans text-slate-800" x-data="{ 
-    isLoggedIn: localStorage.getItem('sibuk_logged') === 'true', 
-    usernameInput: '',
-    passwordInput: '', 
-    loginError: false,
-    isLoading: false,
-    loadingText: '',
-    currentTab: 'beranda', 
-    tahun: '2026', 
-    bulanAktif: 'Mei',
-    daftarBulan: ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-    activeModal: null,
-    
-    dataBulanStatus: {
-        'Feb': false, 'Mar': false, 'Apr': false, 'Mei': true, 'Jun': false, 'Jul': false,
-        'Ags': false, 'Sep': false, 'Okt': false, 'Nov': false, 'Des': false
-    },
-
-    manualKuitansi: { noBukti: '', tanggal: '', nominal: '', uraian: '', penerima: '' },
-    scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N050INVs6XtO_LwV07XsJNoiYPUD6gT2wDSC8Hi77V/exec',
-    
-    async handleLogin() {
-        this.isLoading = true;
-        this.loadingText = 'Memverifikasi user...';
-        try {
-            let formData = new URLSearchParams();
-            formData.append('action', 'login');
-            formData.append('username', this.usernameInput);
-            formData.append('password', this.passwordInput);
-
-            let response = await fetch(this.scriptUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            });
-            let res = await response.json();
-            
-            if (res.status === 'success') {
-                this.isLoggedIn = true;
-                localStorage.setItem('sibuk_logged', 'true');
-                this.loginError = false;
-            } else {
-                this.loginError = true;
-            }
-        } catch (e) {
-            if(this.usernameInput === 'admin' && this.passwordInput === 'admin123') {
-                this.isLoggedIn = true;
-                localStorage.setItem('sibuk_logged', 'true');
-            } else {
-                this.loginError = true;
-            }
-        } finally {
-            this.isLoading = false;
-        }
-    },
-
-    logout() {
-        this.isLoggedIn = false;
-        localStorage.removeItem('sibuk_logged');
-        this.usernameInput = '';
-        this.passwordInput = '';
-    },
-
-    async prosesUploadBKU(fileInput) {
-        const file = fileInput.files[0];
-        if (!file) { alert('Silakan pilih file PDF BKU terlebih dahulu!'); return; }
-
-        this.activeModal = null;
-        this.isLoading = true;
-        this.loadingText = 'Membaca dan mengekstrak file PDF BKU...';
-
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let extractedRows = [];
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                let textItems = textContent.items.map(item => item.str);
-                
-                for (let j = 0; j < textItems.length; j++) {
-                    let item = textItems[j];
-                    if (/^\d{2}-\d{2}-\d{4}$/.test(item)) {
-                        extractedRows.push({
-                            tanggal: item,
-                            kodeKegiatan: textItems[j + 1] || '',
-                            kodeRekening: textItems[j + 2] || '',
-                            noBukti: textItems[j + 3] || '',
-                            uraian: textItems[j + 4] || 'Transaksi BKU',
-                            penerima: 0,
-                            pengeluaran: 0,
-                            saldo: 0,
-                            bulan: this.bulanAktif,
-                            tahun: this.tahun
-                        });
-                    }
-                }
-            }
-
-            if(this.bulanAktif === 'Mei') this.dataBulanStatus['Mei'] = true;
-
-            let formData = new URLSearchParams();
-            formData.append('action', 'upload_bku');
-            formData.append('dataRows', JSON.stringify(extractedRows));
-
-            await fetch(this.scriptUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            });
-
-            alert('SUKSES! Data BKU berhasil di-upload ke Spreadsheet[cite: 1].');
-        } catch (error) {
-            alert('File PDF BKU berhasil diproses!');
-        } finally {
-            this.isLoading = false;
-        }
-    },
-
-    cetakKuitansiManual() {
-        if(!this.manualKuitansi.noBukti || !this.manualKuitansi.nominal) {
-            alert('Mohon isi No. Bukti dan Nominal terlebih dahulu!');
-            return;
-        }
-        
-        var noBukti = this.manualKuitansi.noBukti;
-        var tanggal = this.manualKuitansi.tanggal || '-';
-        var nominal = Number(this.manualKuitansi.nominal).toLocaleString('id-ID');
-        var uraian = this.manualKuitansi.uraian || '-';
-        var penerima = this.manualKuitansi.penerima || '-';
-        var tglCetak = new Date().toLocaleDateString('id-ID');
-
-        var printWindow = window.open('', '_blank');
-        var htmlContent = '<html><head><title>Kuitansi Pembayaran Dana BOS</title>' +
-            '<style>body { font-family: Arial, sans-serif; padding: 40px; color: #111; }' +
-            '.header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 25px; }' +
-            '.header h2 { margin: 0; font-size: 18px; font-weight: bold; }' +
-            '.header p { margin: 5px 0 0; font-size: 14px; font-weight: bold; }' +
-            '.content { font-size: 13px; line-height: 2; }' +
-            '.row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }' +
-            '.label { font-weight: bold; width: 180px; }' +
-            '.value { flex: 1; }' +
-            '.footer { margin-top: 60px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; }' +
-            '.sign-box { width: 220px; }</style></head><body>' +
-            '<div class="header"><h2>SMKS TARUNA TERPADU 2</h2><p>KUITANSI PEMBAYARAN DANA BOS (MANUAL)</p></div>' +
-            '<div class="content">' +
-            '<div class="row"><span class="label">No. Bukti BKU</span><span class="value">: ' + noBukti + '</span></div>' +
-            '<div class="row"><span class="label">Tanggal Diterima</span><span class="value">: ' + tanggal + '</span></div>' +
-            '<div class="row"><span class="label">Nominal Penerimaan</span><span class="value">: Rp ' + nominal + '</span></div>' +
-            '<div class="row"><span class="label">Untuk Pembayaran</span><span class="value">: ' + uraian + '</span></div>' +
-            '<div class="row"><span class="label">Identitas Penerima</span><span class="value">: ' + penerima + '</span></div>' +
-            '</div>' +
-            '<div class="footer"><div class="sign-box"><p>Bendahara Sekolah</p><br><br><br><p><b>( Febby Nurtriandini )</b></p></div>' +
-            '<div class="sign-box"><p>Bogor, ' + tglCetak + '</p><p>Kepala Sekolah</p><br><br><br><p><b>( Besse Warni )</b></p></div></div>' +
-            '<script>window.onload = function() { window.print(); }</script></body></html>';
-
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        this.activeModal = null;
-    }
-}">
+<body class="bg-[#f0f4f8] font-sans text-slate-800" x-data="appData()">
 
     <!-- GLOBAL LOADING -->
     <div x-show="isLoading" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[150]" style="display: none;">
@@ -195,7 +33,7 @@
     </div>
 
     <!-- HALAMAN LOGIN -->
-    <div x-show="!isLoggedIn" class="flex items-center justify-center h-screen bg-slate-900">
+    <div x-show="!isLoggedIn" class="flex items-center justify-center h-screen bg-slate-900" style="display: none;">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
                 <div class="inline-flex bg-blue-900 text-white p-3 rounded-xl text-xl font-bold shadow">
@@ -213,6 +51,9 @@
                     <label class="block text-xs font-bold text-slate-600 mb-1">KATA SANDI</label>
                     <input type="password" x-model="passwordInput" placeholder="Password" required class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none">
                 </div>
+                <template x-if="loginError">
+                    <p class="text-xs text-red-500 font-semibold bg-red-50 p-2 rounded-lg text-center">Username atau Kata Sandi salah!</p>
+                </template>
                 <button type="submit" class="w-full bg-blue-900 text-white py-3 rounded-xl font-bold text-sm shadow hover:bg-blue-800 transition">
                     Masuk Sistem
                 </button>
@@ -220,7 +61,7 @@
         </div>
     </div>
 
-    <!-- APLIKASI UTAMA (TAMPILAN 100% PERSIS SEPERTI GAMBAR F1031F) -->
+    <!-- APLIKASI UTAMA -->
     <div x-show="isLoggedIn" class="flex h-screen overflow-hidden bg-[#f0f4f8] p-3 gap-3" style="display: none;">
         
         <!-- SIDEBAR -->
@@ -304,7 +145,6 @@
                         <span class="text-[11px] text-slate-400">Menunggu proses BKU</span>
                     </div>
 
-                    <!-- Kotak Bulan Horizontal Persis Gambar F1031F -->
                     <div class="bg-[#0b1329] text-white p-4 rounded-2xl shadow-xs flex items-center justify-between">
                         <div class="grid grid-cols-6 gap-1 w-full text-center">
                             <template x-for="b in daftarBulan">
@@ -317,7 +157,6 @@
                     </div>
                 </div>
 
-                <!-- Bagian Aksi Cepat & Peralatan Dokumen -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">AKSI CEPAT</h3>
@@ -352,7 +191,6 @@
                             </button>
                         </div>
 
-                        <!-- Tombol Kosongkan Data BKU Bulanan -->
                         <button @click="confirm('Kosongkan data BKU bulanan?')" class="w-full bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs hover:bg-red-50/30 transition flex items-center justify-between text-left cursor-pointer">
                             <div class="flex items-center space-x-3">
                                 <div class="bg-red-50 text-red-600 p-2.5 rounded-xl"><i class="fa-solid fa-trash-can text-sm"></i></div>
@@ -362,7 +200,6 @@
                         </button>
                     </div>
 
-                    <!-- Peralatan Dokumen (5 Kotak Persis Gambar F1031F) -->
                     <div class="space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">PERALATAN DOKUMEN</h3>
                         
@@ -467,5 +304,171 @@
         </div>
     </div>
 
+    <!-- SCRIPT ALPINE.JS UTAMA DI LUAR TAG HTML AGAR TIDAK ERROR -->
+    <script>
+        function appData() {
+            return {
+                isLoggedIn: localStorage.getItem('sibuk_logged') === 'true',
+                usernameInput: '',
+                passwordInput: '',
+                loginError: false,
+                isLoading: false,
+                loadingText: '',
+                currentTab: 'beranda',
+                tahun: '2026',
+                bulanAktif: 'Mei',
+                daftarBulan: ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+                activeModal: null,
+                dataBulanStatus: {
+                    'Feb': false, 'Mar': false, 'Apr': false, 'Mei': true, 'Jun': false, 'Jul': false,
+                    'Ags': false, 'Sep': false, 'Okt': false, 'Nov': false, 'Des': false
+                },
+                manualKuitansi: { noBukti: '', tanggal: '', nominal: '', uraian: '', penerima: '' },
+                scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N05OINvs6XtO_LwV07XsJNoiPUD6gT2wDSC8Hi77V/exec',
+
+                async handleLogin() {
+                    this.isLoading = true;
+                    this.loadingText = 'Memverifikasi user...';
+                    try {
+                        let formData = new URLSearchParams();
+                        formData.append('action', 'login');
+                        formData.append('username', this.usernameInput);
+                        formData.append('password', this.passwordInput);
+
+                        let response = await fetch(this.scriptUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: formData.toString()
+                        });
+                        let res = await response.json();
+                        
+                        if (res.status === 'success') {
+                            this.isLoggedIn = true;
+                            localStorage.setItem('sibuk_logged', 'true');
+                            this.loginError = false;
+                        } else {
+                            this.loginError = true;
+                        }
+                    } catch (e) {
+                        if(this.usernameInput === 'admin' && this.passwordInput === 'admin123') {
+                            this.isLoggedIn = true;
+                            localStorage.setItem('sibuk_logged', 'true');
+                        } else {
+                            this.loginError = true;
+                        }
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                logout() {
+                    this.isLoggedIn = false;
+                    localStorage.removeItem('sibuk_logged');
+                    this.usernameInput = '';
+                    this.passwordInput = '';
+                },
+
+                async prosesUploadBKU(fileInput) {
+                    const file = fileInput.files[0];
+                    if (!file) { alert('Silakan pilih file PDF BKU terlebih dahulu!'); return; }
+
+                    this.activeModal = null;
+                    this.isLoading = true;
+                    this.loadingText = 'Membaca dan mengekstrak file PDF BKU...';
+
+                    try {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let extractedRows = [];
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            let textItems = textContent.items.map(item => item.str);
+                            
+                            for (let j = 0; j < textItems.length; j++) {
+                                let item = textItems[j];
+                                if (/^\d{2}-\d{2}-\d{4}$/.test(item)) {
+                                    extractedRows.push({
+                                        tanggal: item,
+                                        kodeKegiatan: textItems[j + 1] || '',
+                                        kodeRekening: textItems[j + 2] || '',
+                                        noBukti: textItems[j + 3] || '',
+                                        uraian: textItems[j + 4] || 'Transaksi BKU',
+                                        penerima: 0,
+                                        pengeluaran: 0,
+                                        saldo: 0,
+                                        bulan: this.bulanAktif,
+                                        tahun: this.tahun
+                                    });
+                                }
+                            }
+                        }
+
+                        if(this.bulanAktif === 'Mei') this.dataBulanStatus['Mei'] = true;
+
+                        let formData = new URLSearchParams();
+                        formData.append('action', 'upload_bku');
+                        formData.append('dataRows', JSON.stringify(extractedRows));
+
+                        await fetch(this.scriptUrl, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: formData.toString()
+                        });
+
+                        alert('SUKSES! Data BKU berhasil di-upload ke Spreadsheet[cite: 1].');
+                    } catch (error) {
+                        alert('File PDF BKU berhasil diproses!');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                cetakKuitansiManual() {
+                    if(!this.manualKuitansi.noBukti || !this.manualKuitansi.nominal) {
+                        alert('Mohon isi No. Bukti dan Nominal terlebih dahulu!');
+                        return;
+                    }
+                    
+                    var noBukti = this.manualKuitansi.noBukti;
+                    var tanggal = this.manualKuitansi.tanggal || '-';
+                    var nominal = Number(this.manualKuitansi.nominal).toLocaleString('id-ID');
+                    var uraian = this.manualKuitansi.uraian || '-';
+                    var penerima = this.manualKuitansi.penerima || '-';
+                    var tglCetak = new Date().toLocaleDateString('id-ID');
+
+                    var printWindow = window.open('', '_blank');
+                    var htmlContent = '<html><head><title>Kuitansi Pembayaran Dana BOS</title>' +
+                        '<style>body { font-family: Arial, sans-serif; padding: 40px; color: #111; }' +
+                        '.header { text-align: center; border-bottom: 3px double #333; padding-bottom: 15px; margin-bottom: 25px; }' +
+                        '.header h2 { margin: 0; font-size: 18px; font-weight: bold; }' +
+                        '.header p { margin: 5px 0 0; font-size: 14px; font-weight: bold; }' +
+                        '.content { font-size: 13px; line-height: 2; }' +
+                        '.row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }' +
+                        '.label { font-weight: bold; width: 180px; }' +
+                        '.value { flex: 1; }' +
+                        '.footer { margin-top: 60px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; }' +
+                        '.sign-box { width: 220px; }</style></head><body>' +
+                        '<div class="header"><h2>SMKS TARUNA TERPADU 2</h2><p>KUITANSI PEMBAYARAN DANA BOS (MANUAL)</p></div>' +
+                        '<div class="content">' +
+                        '<div class="row"><span class="label">No. Bukti BKU</span><span class="value">: ' + noBukti + '</span></div>' +
+                        '<div class="row"><span class="label">Tanggal Diterima</span><span class="value">: ' + tanggal + '</span></div>' +
+                        '<div class="row"><span class="label">Nominal Penerimaan</span><span class="value">: Rp ' + nominal + '</span></div>' +
+                        '<div class="row"><span class="label">Untuk Pembayaran</span><span class="value">: ' + uraian + '</span></div>' +
+                        '<div class="row"><span class="label">Identitas Penerima</span><span class="value">: ' + penerima + '</span></div>' +
+                        '</div>' +
+                        '<div class="footer"><div class="sign-box"><p>Bendahara Sekolah</p><br><br><br><p><b>( Febby Nurtriandini )</b></p></div>' +
+                        '<div class="sign-box"><p>Bogor, ' + tglCetak + '</p><p>Kepala Sekolah</p><br><br><br><p><b>( Besse Warni )</b></p></div></div>' +
+                        '<script>window.onload = function() { window.print(); }</script></body></html>';
+
+                    printWindow.document.write(htmlContent);
+                    printWindow.document.close();
+                    this.activeModal = null;
+                }
+            }
+        }
+    </script>
 </body>
 </html>
