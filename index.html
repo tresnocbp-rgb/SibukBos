@@ -61,7 +61,7 @@
         </div>
     </div>
 
-    <!-- APLIKASI UTAMA (MODE DASHBOARD AWAL) -->
+    <!-- APLIKASI UTAMA (DASHBOARD) -->
     <div x-show="isLoggedIn" class="flex h-screen overflow-hidden bg-[#f0f4f8] p-3 gap-3" style="display: none;">
         
         <!-- SIDEBAR -->
@@ -324,7 +324,7 @@
                     'Ags': false, 'Sep': false, 'Okt': false, 'Nov': false, 'Des': false
                 },
                 manualKuitansi: { noBukti: '', tanggal: '', nominal: '', uraian: '', penerima: '' },
-                scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N050INvs6XtO_LwV07XsJNoiPUD6gT2wDSC8Hi77V/exec',
+                scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N05OINvs6XtO_LwV07XsJNoiPUD6gT2wDSC8Hi77V/exec',
 
                 async handleLogin() {
                     this.isLoading = true;
@@ -467,7 +467,7 @@
                     printWindow.document.close();
                     this.activeModal = null;
                 }
-            }
+            };
         }
     </script>
 </body>
