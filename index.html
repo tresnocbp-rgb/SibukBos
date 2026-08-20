@@ -20,6 +20,7 @@
             .print-area thead { background: #0b1329 !important; color: white !important; }
             body { background: white !important; padding: 10px !important; }
             .sidebar, .no-print { display: none !important; }
+            .kuitansi-print-modal { display: block !important; position: absolute; top: 0; left: 0; width: 100%; background: white; z-index: 9999; padding: 20px; }
         }
     </style>
 </head>
@@ -44,7 +45,9 @@
     showEntries: 10,
     searchQuery: '',
     currentPage: 1,
-    emailSubject: 'Laporan SPJ',
+    
+    // Data untuk Pratinjau Kuitansi Satuan
+    selectedKuitansi: null,
     
     summaryStats: {
         totalPenerimaan: 0,
@@ -247,8 +250,8 @@
     },
 
     printKuitansi(row) {
-        alert('Membuka Pratinjau Kuitansi Pembayaran untuk No Bukti: ' + (row.no_bukti || '-'));
-        window.print();
+        this.selectedKuitansi = row;
+        this.activeModal = 'printKuitansiModal';
     },
 
     init() {
@@ -449,9 +452,11 @@
                 </div>
             </div>
 
-            <!-- ===== GAYA CETAK (Dikembalikan seperti semula) ===== -->
+            <!-- ===== GAYA CETAK (Dikembalikan persis seperti semula) ===== -->
             <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak</h2>
+
+                <!-- PENGATURAN HEADER -->
                 <div class="space-y-3">
                     <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">PENGATURAN HEADER</span>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -508,12 +513,12 @@
                     </button>
                 </div>
 
-                <!-- TABEL DENGAN KOLOM AKSI & TOMBOL CETAK KUITANSI PEMBAYARAN -->
+                <!-- TABEL SESUAI SPREADSHEET DENGAN KOLOM AKSI KUITANSI -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between no-print">
                         <div>
-                            <h3 class="font-extrabold text-slate-800 text-sm">Cetak Rekapitulasi & Kuitansi Pembayaran</h3>
-                            <p class="text-[10px] text-slate-400">Pilih tombol "Cetak Kuitansi" pada tabel di bawah untuk mencetak satuan.</p>
+                            <h3 class="font-extrabold text-slate-800 text-sm">Data BKU & Cetak Kuitansi Pembayaran</h3>
+                            <p class="text-[10px] text-slate-400">Sinkronisasi langsung dengan Google Spreadsheet.</p>
                         </div>
                     </div>
                     <div class="overflow-x-auto p-4 print-area">
@@ -530,6 +535,9 @@
                                         <tr class="bg-[#0b1329] text-white">
                                             <th class="px-3 py-2.5 text-left font-bold">No</th>
                                             <th class="px-3 py-2.5 text-left font-bold">Tanggal</th>
+                                            <th class="px-3 py-2.5 text-left font-bold">Kode Kegiatan</th>
+                                            <th class="px-3 py-2.5 text-left font-bold">Kode Rekening</th>
+                                            <th class="px-3 py-2.5 text-left font-bold">No Bukti</th>
                                             <th class="px-3 py-2.5 text-left font-bold">Uraian</th>
                                             <th class="px-3 py-2.5 text-right font-bold">Penerimaan</th>
                                             <th class="px-3 py-2.5 text-right font-bold">Pengeluaran</th>
@@ -542,12 +550,15 @@
                                             <tr class="border-b border-slate-100 hover:bg-slate-50/60">
                                                 <td class="px-3 py-2.5 font-bold text-slate-700" x-text="(currentPage - 1) * showEntries + idx + 1"></td>
                                                 <td class="px-3 py-2.5 text-slate-600" x-text="row.tanggal || '-'"></td>
+                                                <td class="px-3 py-2.5 text-slate-500" x-text="row.kode_kegiatan || '-'"></td>
+                                                <td class="px-3 py-2.5 text-slate-500" x-text="row.kode_rekening || '-'"></td>
+                                                <td class="px-3 py-2.5 text-slate-500" x-text="row.no_bukti || '-'"></td>
                                                 <td class="px-3 py-2.5 text-slate-700 font-medium" x-text="row.uraian_transaks || row.uraian || '-'"></td>
                                                 <td class="px-3 py-2.5 text-right text-emerald-600 font-bold" x-text="formatRupiah(row.penerimaan)"></td>
                                                 <td class="px-3 py-2.5 text-right text-rose-600 font-bold" x-text="formatRupiah(row.pengeluaran)"></td>
                                                 <td class="px-3 py-2.5 text-right text-blue-700 font-bold" x-text="formatRupiah(row.saldo)"></td>
                                                 <td class="px-3 py-2.5 text-center no-print">
-                                                    <button @click="printKuitansi(row)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-[10px] shadow-sm transition flex items-center justify-center space-x-1 mx-auto">
+                                                    <button @click="printKuitansi(row)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-[10px] shadow-sm transition flex items-center justify-center space-x-1 mx-auto cursor-pointer">
                                                         <i class="fa-solid fa-print"></i>
                                                         <span>Cetak Kuitansi</span>
                                                     </button>
@@ -573,8 +584,54 @@
         </main>
     </div>
 
-    <!-- ===== POP-UP MODAL UNTUK AKSI CEPAT & PENGATURAN ===== -->
-    <!-- Sesuaikan Data -->
+    <!-- ===== MODAL / POP-UP AKTIF UNTUK SEMUA FITUR ===== -->
+    
+    <!-- 1. Modal Cetak Kuitansi Pembayaran (Format Profesional) -->
+    <div x-show="activeModal === 'printKuitansiModal'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4" style="display: none;">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden kuitansi-print-modal">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100 no-print">
+                <h3 class="font-extrabold text-slate-900 text-sm">PRATINJAU KUITANSI PEMBAYARAN</h3>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="border border-slate-300 p-6 rounded-xl space-y-4 bg-white">
+                    <div class="flex justify-between items-start border-b pb-4">
+                        <div>
+                            <h2 class="text-base font-extrabold text-blue-900" x-text="gayaCetak.labelHeader"></h2>
+                            <p class="text-xs font-bold text-slate-700">SEKOLAH DASAR / MENENGAH</p>
+                        </div>
+                        <div class="text-right text-xs">
+                            <p><span class="font-bold">No Bukti:</span> <span x-text="selectedKuitansi ? (selectedKuitansi.no_bukti || '-') : '-'"></span></p>
+                            <p><span class="font-bold">Tanggal:</span> <span x-text="selectedKuitansi ? (selectedKuitansi.tanggal || '-') : '-'"></span></p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        <p><span class="font-bold">Sudah diterima dari:</span> Bendahara Sekolah / Kepala Sekolah</p>
+                        <p><span class="font-bold">Uang sejumlah:</span> <span class="italic font-extrabold text-blue-900" x-text="formatRupiah(selectedKuitansi ? (selectedKuitansi.pengeluaran > 0 ? selectedKuitansi.pengeluaran : selectedKuitansi.penerimaan) : 0)"></span></p>
+                        <p><span class="font-bold">Untuk keperluan:</span> <span x-text="selectedKuitansi ? (selectedKuitansi.uraian_transaks || selectedKuitansi.uraian || '-') : '-'"></span></p>
+                    </div>
+                    <div class="grid grid-cols-2 pt-8 text-xs text-center">
+                        <div>
+                            <p>Penerima Dana</p>
+                            <div class="h-16"></div>
+                            <p class="font-bold underline">( ........................................ )</p>
+                        </div>
+                        <div>
+                            <p>Bendahara Sekolah</p>
+                            <div class="h-16"></div>
+                            <p class="font-bold underline">( ........................................ )</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 no-print">
+                    <button @click="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow">Cetak / Print Kuitansi</button>
+                    <button @click="activeModal = null" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-xs">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal Sesuaikan Data -->
     <div x-show="activeModal === 'sesuaikanData'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
@@ -582,13 +639,13 @@
                 <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-500">Gunakan fitur ini untuk mengubah rincian, memperbaiki nama penerima, dan edit nominal langsung pada sistem.</p>
+                <p class="text-xs text-slate-500">Ubah rincian, perbaiki nama penerima, dan edit nominal langsung terhubung ke database spreadsheet.</p>
                 <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3 rounded-xl font-bold text-xs">Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Input Manual -->
+    <!-- 3. Modal Input Manual -->
     <div x-show="activeModal === 'inputManual'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
@@ -596,13 +653,13 @@
                 <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-500">Formulir pembuatan kuitansi satuan mendadak tanpa menyimpan ke database.</p>
+                <p class="text-xs text-slate-500">Buat kuitansi satuan mendadak tanpa menyimpannya ke database spreadsheet.</p>
                 <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3 rounded-xl font-bold text-xs">Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Gabung PDF -->
+    <!-- 4. Modal Gabung PDF -->
     <div x-show="activeModal === 'gabungPdf'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
@@ -610,13 +667,13 @@
                 <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-500">Satukan beberapa dokumen PDF SPJ dengan mudah dan cepat.</p>
+                <p class="text-xs text-slate-500">Satukan dokumen PDF lampiran SPJ dengan cepat.</p>
                 <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3 rounded-xl font-bold text-xs">Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Pisah PDF -->
+    <!-- 5. Modal Pisah PDF -->
     <div x-show="activeModal === 'pisahPdf'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
@@ -624,13 +681,13 @@
                 <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-500">Pecah halaman dokumen PDF sesuai kebutuhan Anda.</p>
+                <p class="text-xs text-slate-500">Pecah halaman dokumen PDF sesuai kebutuhan laporan.</p>
                 <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3 rounded-xl font-bold text-xs">Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Kompres Foto -->
+    <!-- 6. Modal Kompres Foto -->
     <div x-show="activeModal === 'kompresFoto'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
@@ -638,13 +695,13 @@
                 <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-500">Perkecil ukuran file JPG/PNG untuk lampiran digital.</p>
+                <p class="text-xs text-slate-500">Perkecil ukuran JPG/PNG untuk dokumentasi kegiatan.</p>
                 <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3 rounded-xl font-bold text-xs">Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Kompres PDF -->
+    <!-- 7. Modal Kompres PDF -->
     <div x-show="activeModal === 'kompresPdf'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
@@ -652,13 +709,13 @@
                 <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-500">Perkecil ukuran file PDF agar lebih ringan diunggah.</p>
+                <p class="text-xs text-slate-500">Perkecil ukuran file PDF laporan SPJ.</p>
                 <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3 rounded-xl font-bold text-xs">Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Label Header -->
+    <!-- 8. Modal Label Header -->
     <div x-show="activeModal === 'labelHeader'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
@@ -675,7 +732,7 @@
         </div>
     </div>
 
-    <!-- Kotak No BKU -->
+    <!-- 9. Modal Kotak No BKU -->
     <div x-show="activeModal === 'kotakNoBku'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div class="flex justify-between items-center p-6 border-b border-slate-100">
