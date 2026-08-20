@@ -21,6 +21,47 @@
             theme: { extend: { colors: { primary: '#1e40af' } } }
         }
     </script>
+    <style>
+        /* Sembunyikan elemen non-tabel saat mencetak */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .print-area {
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            .print-area table {
+                font-size: 10px;
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .print-area th,
+            .print-area td {
+                border: 1px solid #ccc;
+                padding: 4px 6px;
+            }
+            .print-area thead {
+                background: #0b1329 !important;
+                color: white !important;
+            }
+            body {
+                background: white !important;
+                padding: 10px !important;
+            }
+            .sidebar,
+            .top-bar,
+            .action-buttons,
+            .filter-controls {
+                display: none !important;
+            }
+        }
+    </style>
 </head>
 <body class="bg-[#f0f4f8] font-sans text-slate-800" x-data="{
     isLoggedIn: localStorage.getItem('sibuk_logged') === 'true',
@@ -35,11 +76,16 @@
     daftarBulan: ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
     activeModal: null,
 
-    // Data BKU untuk tabel rekapitulasi
+    // Data BKU
     dataBKU: [],
     showTable: false,
 
-    // Konfigurasi Gaya Cetak yang tersimpan
+    // Pengaturan tampilan tabel
+    showEntries: 10,
+    searchQuery: '',
+    currentPage: 1,
+
+    // Konfigurasi Gaya Cetak
     gayaCetak: {
         labelHeader: 'Kuitansi',
         kotakNoBku: 'Berwarna',
@@ -164,7 +210,6 @@
     },
 
     // ========== PUSAT CETAK ==========
-    // Muat data rekapitulasi berdasarkan tahun
     async loadRekapitulasi() {
         this.isLoading = true;
         this.loadingText = 'Memuat data rekapitulasi tahun ' + this.tahun + '...';
@@ -185,15 +230,25 @@
             if (res.status === 'success' && res.data) {
                 this.dataBKU = res.data;
             } else {
-                // Data dummy jika belum ada
+                // Data dummy lebih banyak
                 this.dataBKU = [
                     { no: 1, tanggal: '01-05-2026', uraian: 'Saldo Bank Bulan April 2026', kodeKegiatan: '', kodeRekening: '', noBukti: '', penerimaan: '315.774.000', pengeluaran: '0', saldo: '315.774.000' },
                     { no: 2, tanggal: '04-05-2026', uraian: 'Isi ulang gas elpiji 12 kg', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0005', noBukti: 'BPU21', penerimaan: '0', pengeluaran: '245.000', saldo: '315.529.000' },
                     { no: 3, tanggal: '05-05-2026', uraian: 'Pembelian ATK Kantor', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0006', noBukti: 'BPU22', penerimaan: '0', pengeluaran: '1.200.000', saldo: '314.329.000' },
                     { no: 4, tanggal: '07-05-2026', uraian: 'Transportasi dinas', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0007', noBukti: 'BPU23', penerimaan: '0', pengeluaran: '500.000', saldo: '313.829.000' },
+                    { no: 5, tanggal: '10-05-2026', uraian: 'Pembelian software', kodeKegiatan: '06.05.08.', kodeRekening: '5.1.02.01.02.0001', noBukti: 'BPU24', penerimaan: '0', pengeluaran: '2.500.000', saldo: '311.329.000' },
+                    { no: 6, tanggal: '12-05-2026', uraian: 'Biaya listrik', kodeKegiatan: '06.05.08.', kodeRekening: '5.1.02.01.02.0002', noBukti: 'BPU25', penerimaan: '0', pengeluaran: '850.000', saldo: '310.479.000' },
+                    { no: 7, tanggal: '15-05-2026', uraian: 'Pembelian perlengkapan kantor', kodeKegiatan: '06.05.08.', kodeRekening: '5.1.02.01.02.0003', noBukti: 'BPU26', penerimaan: '0', pengeluaran: '1.750.000', saldo: '308.729.000' },
+                    { no: 8, tanggal: '18-05-2026', uraian: 'Biaya perawatan kendaraan', kodeKegiatan: '06.05.09.', kodeRekening: '5.1.02.01.03.0001', noBukti: 'BPU27', penerimaan: '0', pengeluaran: '2.100.000', saldo: '306.629.000' },
+                    { no: 9, tanggal: '20-05-2026', uraian: 'Pembelian bahan habis pakai', kodeKegiatan: '06.05.09.', kodeRekening: '5.1.02.01.03.0002', noBukti: 'BPU28', penerimaan: '0', pengeluaran: '620.000', saldo: '306.009.000' },
+                    { no: 10, tanggal: '22-05-2026', uraian: 'Biaya makan minum rapat', kodeKegiatan: '06.05.09.', kodeRekening: '5.1.02.01.03.0003', noBukti: 'BPU29', penerimaan: '0', pengeluaran: '350.000', saldo: '305.659.000' },
+                    { no: 11, tanggal: '25-05-2026', uraian: 'Pembelian hadiah', kodeKegiatan: '06.05.10.', kodeRekening: '5.1.02.01.04.0001', noBukti: 'BPU30', penerimaan: '0', pengeluaran: '900.000', saldo: '304.759.000' },
+                    { no: 12, tanggal: '28-05-2026', uraian: 'Biaya pengiriman dokumen', kodeKegiatan: '06.05.10.', kodeRekening: '5.1.02.01.04.0002', noBukti: 'BPU31', penerimaan: '0', pengeluaran: '150.000', saldo: '304.609.000' },
                 ];
             }
             this.showTable = true;
+            this.currentPage = 1;
+            this.searchQuery = '';
         } catch (e) {
             // Data dummy jika error
             this.dataBKU = [
@@ -203,30 +258,76 @@
                 { no: 4, tanggal: '07-05-2026', uraian: 'Transportasi dinas', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0007', noBukti: 'BPU23', penerimaan: '0', pengeluaran: '500.000', saldo: '313.829.000' },
             ];
             this.showTable = true;
+            this.currentPage = 1;
+            this.searchQuery = '';
         } finally {
             this.isLoading = false;
         }
     },
 
-    // Cetak Rekapitulasi
+    // Filter dan paginasi
+    get filteredData() {
+        if (!this.searchQuery) return this.dataBKU;
+        return this.dataBKU.filter(row =>
+            Object.values(row).some(val =>
+                String(val).toLowerCase().includes(this.searchQuery.toLowerCase())
+            )
+        );
+    },
+
+    get totalPages() {
+        return Math.ceil(this.filteredData.length / this.showEntries) || 1;
+    },
+
+    get paginatedData() {
+        const start = (this.currentPage - 1) * this.showEntries;
+        const end = start + this.showEntries;
+        return this.filteredData.slice(start, end);
+    },
+
+    goToPage(page) {
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+        }
+    },
+
+    // Cetak Rekapitulasi (hanya tabel)
     printRekapitulasi() {
+        // Sembunyikan elemen yang tidak perlu saat print
         window.print();
     },
 
-    // Cetak Kuitansi Massal
+    // Cetak Kuitansi Massal (Generate SPJ)
     printKuitansiMassal() {
-        alert('Fitur Cetak Kuitansi Massal: Generate SPJ lengkap dengan rincian dan lampirannya untuk tahun ' + this.tahun);
-        // Di sini nanti bisa diimplementasikan generate PDF massal
+        if (this.filteredData.length === 0) {
+            alert('Tidak ada data untuk dicetak. Silakan muat data terlebih dahulu.');
+            return;
+        }
+        // Simulasi generate SPJ
+        const total = this.filteredData.length;
+        alert('Generate SPJ untuk ' + total + ' transaksi tahun ' + this.tahun + '.\nFitur ini akan menghasilkan dokumen lengkap dengan rincian dan lampiran.');
+        // Di sini nanti diimplementasikan generate PDF massal
     },
 
     // Aksi Sesuai
     aksiSesuai(action) {
-        alert('Aksi: ' + action);
+        if (this.filteredData.length === 0) {
+            alert('Tidak ada data yang dipilih. Silakan muat data terlebih dahulu.');
+            return;
+        }
+        if (action === 'Cetak Semua') {
+            alert('Cetak semua dokumen untuk ' + this.filteredData.length + ' transaksi.');
+        } else if (action === 'Unduh PDF') {
+            alert('Mengunduh PDF untuk ' + this.filteredData.length + ' transaksi.');
+        } else if (action === 'Kirim Email') {
+            alert('Mengirim email untuk ' + this.filteredData.length + ' transaksi.');
+        } else {
+            alert('Aksi: ' + action);
+        }
     },
 
     // ========== INISIALISASI ==========
     init() {
-        // Saat tab Pusat Cetak diaktifkan, load data
         if (this.currentTab === 'pusat-cetak') {
             this.loadRekapitulasi();
         }
@@ -277,7 +378,7 @@
     <div x-show="isLoggedIn" class="flex h-screen overflow-hidden bg-[#f0f4f8] p-3 gap-3" style="display: none;">
 
         <!-- SIDEBAR -->
-        <aside class="w-64 bg-white border border-slate-200/80 rounded-3xl flex flex-col justify-between shadow-2xs p-4">
+        <aside class="w-64 bg-white border border-slate-200/80 rounded-3xl flex flex-col justify-between shadow-2xs p-4 sidebar">
             <div>
                 <div class="p-3 mb-4 flex items-center space-x-3 border-b border-slate-100 pb-4">
                     <div class="bg-blue-900 text-white p-2.5 rounded-xl font-bold text-lg shadow-xs">
@@ -646,7 +747,7 @@
             </div>
 
             <!-- ============================================================ -->
-            <!-- 3. PUSAT CETAK ★★★ DI SINI KONTEN BARU ★★★ -->
+            <!-- 3. PUSAT CETAK (DENGAN FITUR LENGKAP)                        -->
             <!-- ============================================================ -->
             <div x-show="currentTab === 'pusat-cetak'" class="space-y-6" style="display: none;">
 
@@ -657,8 +758,8 @@
                     <p class="text-xs text-slate-400 mt-0.5">Silakan pilih tahun anggaran untuk memuat data rekap dan kuitansi.</p>
                 </div>
 
-                <!-- PEMILIH TAHUN -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-wrap items-center gap-4">
+                <!-- PEMILIH TAHUN + MUAT DATA -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-wrap items-center gap-4 no-print">
                     <div class="flex items-center space-x-3">
                         <span class="text-xs font-bold text-slate-600">Tahun Anggaran</span>
                         <select x-model="tahun" @change="loadRekapitulasi()" class="border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -676,7 +777,7 @@
 
                 <!-- 3A. CETAK REKAPITULASI -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between no-print">
                         <div>
                             <h3 class="font-extrabold text-slate-800 text-sm flex items-center space-x-2">
                                 <i class="fa-solid fa-table text-blue-900"></i>
@@ -690,8 +791,27 @@
                         </button>
                     </div>
 
-                    <!-- Tabel -->
-                    <div class="overflow-x-auto p-4">
+                    <!-- KONTROL FILTER & SHOW ENTRIES -->
+                    <div class="px-6 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 no-print">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs text-slate-500">Show</span>
+                            <select x-model="showEntries" class="border border-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span class="text-xs text-slate-500">entries</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-search text-slate-400 text-xs"></i>
+                            <input type="text" x-model="searchQuery" placeholder="Cari..." class="border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 w-48">
+                        </div>
+                    </div>
+
+                    <!-- TABEL -->
+                    <div class="overflow-x-auto p-4 print-area">
                         <template x-if="!showTable || dataBKU.length === 0">
                             <div class="text-center py-12 text-slate-400">
                                 <i class="fa-regular fa-file-lines text-4xl block mb-3"></i>
@@ -701,42 +821,56 @@
                         </template>
 
                         <template x-if="showTable && dataBKU.length > 0">
-                            <table class="w-full text-xs border-collapse">
-                                <thead>
-                                    <tr class="bg-[#0b1329] text-white">
-                                        <th class="px-3 py-2.5 text-left font-bold">No</th>
-                                        <th class="px-3 py-2.5 text-left font-bold">Tanggal</th>
-                                        <th class="px-3 py-2.5 text-left font-bold">Uraian</th>
-                                        <th class="px-3 py-2.5 text-left font-bold">Kode Kegiatan</th>
-                                        <th class="px-3 py-2.5 text-left font-bold">Kode Rekening</th>
-                                        <th class="px-3 py-2.5 text-left font-bold">No Bukti</th>
-                                        <th class="px-3 py-2.5 text-right font-bold">Penerimaan</th>
-                                        <th class="px-3 py-2.5 text-right font-bold">Pengeluaran</th>
-                                        <th class="px-3 py-2.5 text-right font-bold">Saldo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-for="(row, idx) in dataBKU" :key="idx">
-                                        <tr class="border-b border-slate-100 hover:bg-slate-50/60 transition" :class="idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'">
-                                            <td class="px-3 py-2.5 font-bold text-slate-700" x-text="row.no || idx+1"></td>
-                                            <td class="px-3 py-2.5 text-slate-600" x-text="row.tanggal"></td>
-                                            <td class="px-3 py-2.5 text-slate-700 font-medium" x-text="row.uraian"></td>
-                                            <td class="px-3 py-2.5 text-slate-500" x-text="row.kodeKegiatan || '-'"></td>
-                                            <td class="px-3 py-2.5 text-slate-500" x-text="row.kodeRekening || '-'"></td>
-                                            <td class="px-3 py-2.5 text-slate-500" x-text="row.noBukti || '-'"></td>
-                                            <td class="px-3 py-2.5 text-right text-emerald-600 font-bold" x-text="row.penerimaan || '0'"></td>
-                                            <td class="px-3 py-2.5 text-right text-rose-600 font-bold" x-text="row.pengeluaran || '0'"></td>
-                                            <td class="px-3 py-2.5 text-right text-blue-700 font-bold" x-text="row.saldo || '0'"></td>
+                            <div>
+                                <table class="w-full text-xs border-collapse">
+                                    <thead>
+                                        <tr class="bg-[#0b1329] text-white">
+                                            <th class="px-3 py-2.5 text-left font-bold">No</th>
+                                            <th class="px-3 py-2.5 text-left font-bold">Tanggal</th>
+                                            <th class="px-3 py-2.5 text-left font-bold">Uraian</th>
+                                            <th class="px-3 py-2.5 text-left font-bold">Kode Kegiatan</th>
+                                            <th class="px-3 py-2.5 text-left font-bold">Kode Rekening</th>
+                                            <th class="px-3 py-2.5 text-left font-bold">No Bukti</th>
+                                            <th class="px-3 py-2.5 text-right font-bold">Penerimaan</th>
+                                            <th class="px-3 py-2.5 text-right font-bold">Pengeluaran</th>
+                                            <th class="px-3 py-2.5 text-right font-bold">Saldo</th>
                                         </tr>
-                                    </template>
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="(row, idx) in paginatedData" :key="idx">
+                                            <tr class="border-b border-slate-100 hover:bg-slate-50/60 transition" :class="idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'">
+                                                <td class="px-3 py-2.5 font-bold text-slate-700" x-text="(currentPage - 1) * showEntries + idx + 1"></td>
+                                                <td class="px-3 py-2.5 text-slate-600" x-text="row.tanggal"></td>
+                                                <td class="px-3 py-2.5 text-slate-700 font-medium" x-text="row.uraian"></td>
+                                                <td class="px-3 py-2.5 text-slate-500" x-text="row.kodeKegiatan || '-'"></td>
+                                                <td class="px-3 py-2.5 text-slate-500" x-text="row.kodeRekening || '-'"></td>
+                                                <td class="px-3 py-2.5 text-slate-500" x-text="row.noBukti || '-'"></td>
+                                                <td class="px-3 py-2.5 text-right text-emerald-600 font-bold" x-text="row.penerimaan || '0'"></td>
+                                                <td class="px-3 py-2.5 text-right text-rose-600 font-bold" x-text="row.pengeluaran || '0'"></td>
+                                                <td class="px-3 py-2.5 text-right text-blue-700 font-bold" x-text="row.saldo || '0'"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+
+                                <!-- PAGINATION -->
+                                <div class="flex items-center justify-between py-3 text-xs no-print">
+                                    <span class="text-slate-500">Menampilkan <span class="font-bold" x-text="paginatedData.length"></span> dari <span class="font-bold" x-text="filteredData.length"></span> data</span>
+                                    <div class="flex space-x-1">
+                                        <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" class="px-3 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">‹</button>
+                                        <template x-for="p in totalPages" :key="p">
+                                            <button @click="goToPage(p)" :class="p === currentPage ? 'bg-blue-900 text-white border-blue-900' : 'border-slate-200 hover:bg-slate-50'" class="px-3 py-1 rounded border font-bold" x-text="p"></button>
+                                        </template>
+                                        <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" class="px-3 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">›</button>
+                                    </div>
+                                </div>
+                            </div>
                         </template>
                     </div>
                 </div>
 
                 <!-- 3B. CETAK KUITANSI MASSAL -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs p-6">
+                <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs p-6 no-print">
                     <div class="flex items-start justify-between">
                         <div>
                             <h3 class="font-extrabold text-slate-800 text-sm flex items-center space-x-2">
@@ -761,7 +895,7 @@
                     <template x-if="showTable && dataBKU.length > 0">
                         <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500 bg-slate-50/70 rounded-xl px-4 py-3 border border-slate-100">
                             <i class="fa-regular fa-circle-check text-emerald-500"></i>
-                            <span><span class="font-bold text-slate-700" x-text="dataBKU.length"></span> transaksi siap dicetak</span>
+                            <span><span class="font-bold text-slate-700" x-text="filteredData.length"></span> transaksi siap dicetak</span>
                             <span class="w-px h-4 bg-slate-200"></span>
                             <span>Tahun <span class="font-bold text-slate-700" x-text="tahun"></span></span>
                             <span class="w-px h-4 bg-slate-200"></span>
@@ -771,7 +905,7 @@
                 </div>
 
                 <!-- 3C. AKSI SESUAI -->
-                <div class="bg-[#0b1329] text-white rounded-2xl p-6 shadow-md">
+                <div class="bg-[#0b1329] text-white rounded-2xl p-6 shadow-md no-print">
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <h4 class="font-extrabold text-sm flex items-center space-x-2">
