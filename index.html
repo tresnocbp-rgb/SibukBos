@@ -59,6 +59,7 @@
     },
     scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N050INVs6XtO_LwV07XsJNoiYPUD6gT2wDSC8Hi77V/exec',
 
+    // ===== LOGIN =====
     async handleLogin() {
         this.isLoading = true;
         this.loadingText = 'Memverifikasi user...';
@@ -98,6 +99,7 @@
         this.passwordInput = '';
     },
 
+    // ===== UPLOAD BKU =====
     async uploadBKU(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -152,6 +154,7 @@
         }
     },
 
+    // ===== LOAD REKAPITULASI =====
     async loadRekapitulasi() {
         this.isLoading = true;
         this.loadingText = 'Memuat data...';
@@ -188,6 +191,7 @@
         }
     },
 
+    // ===== FILTER & PAGINASI =====
     get filteredData() {
         let data = this.allDataBKU;
         if (this.searchQuery) {
@@ -210,23 +214,21 @@
         if (page >= 1 && page <= this.totalPages) this.currentPage = page;
     },
 
+    // ===== CETAK REKAPITULASI =====
     printRekapitulasi() {
         window.print();
     },
 
-    printSemuaKuitansi() {
-        // Cetak semua data dalam bentuk daftar sederhana
-        // Kita gunakan print area yang sudah ada
-        window.print();
-    },
-
+    // ===== AKSI SESUAI (tanpa template literal) =====
     aksiSesuai(action) {
         if (this.filteredData.length === 0) {
             alert('Tidak ada data.');
             return;
         }
-        if (action === 'Cetak Semua' || action === 'Unduh PDF') {
-            this.printSemuaKuitansi();
+        if (action === 'Cetak Semua') {
+            window.print();
+        } else if (action === 'Unduh PDF') {
+            window.print();
         } else if (action === 'Kirim Email') {
             let recipient = prompt('Masukkan alamat email penerima:');
             if (recipient) this.kirimEmail(recipient);
@@ -235,6 +237,7 @@
         }
     },
 
+    // ===== KIRIM EMAIL =====
     async kirimEmail(recipient) {
         this.isLoading = true;
         this.loadingText = 'Mengirim email...';
@@ -349,10 +352,10 @@
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- KONTEN UTAMA -->
         <main class="flex-1 flex flex-col h-full overflow-y-auto bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs space-y-6">
 
-            <!-- BERANDA -->
+            <!-- ===== BERANDA ===== -->
             <div x-show="currentTab === 'beranda'" class="space-y-6">
                 <h2 class="text-xl font-extrabold text-slate-900">Beranda Utama</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -471,42 +474,179 @@
                 </div>
             </div>
 
-            <!-- GAYA CETAK (SEDERHANA) -->
+            <!-- ===== GAYA CETAK (10 OPSI + MODAL) ===== -->
             <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak</h2>
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs">
-                    <p class="text-sm text-slate-500">Pengaturan gaya cetak (Header, Tanda Tangan, dll.)</p>
-                    <p class="text-xs text-slate-400 mt-2">Untuk mengubah label header, gunakan opsi di bawah:</p>
-                    <div class="mt-4 flex flex-wrap gap-4">
-                        <div>
-                            <label class="text-xs font-bold text-slate-600">Label Header</label>
-                            <select x-model="gayaCetak.labelHeader" class="ml-2 border border-slate-200 rounded-lg px-3 py-1 text-sm">
-                                <option value="Kuitansi">Kuitansi</option>
-                                <option value="Kwitansi">Kwitansi</option>
-                                <option value="Nama Sekolah">Nama Sekolah</option>
-                                <option value="Bukti Kas Pengeluaran">Bukti Kas Pengeluaran</option>
-                            </select>
+
+                <!-- PENGATURAN HEADER -->
+                <div class="space-y-3">
+                    <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">PENGATURAN HEADER</span>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div @click="activeModal = 'labelHeader'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between lg:col-span-2 cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-heading"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Label Header</h4>
+                                    <p class="text-[10px] text-slate-400">Pilih judul benar untuk dokumen kuitansi.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100" x-text="gayaCetak.labelHeader"></span>
                         </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-600">Logo Sekolah</label>
-                            <select x-model="gayaCetak.logoSekolah" class="ml-2 border border-slate-200 rounded-lg px-3 py-1 text-sm">
-                                <option value="Tampilkan">Tampilkan</option>
-                                <option value="Sembunyikan">Sembunyikan</option>
-                            </select>
+                        <div @click="activeModal = 'kotakNoBku'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-slate-100 text-slate-700 p-3 rounded-xl"><i class="fa-solid fa-hashtag"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Kotak No BKU</h4>
+                                    <p class="text-[10px] text-slate-400">Latar warna kotak nomor.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg" x-text="gayaCetak.kotakNoBku"></span>
                         </div>
-                        <div>
-                            <label class="text-xs font-bold text-slate-600">Tanda Tangan</label>
-                            <select x-model="gayaCetak.tandaTangan" class="ml-2 border border-slate-200 rounded-lg px-3 py-1 text-sm">
-                                <option value="Sembunyikan">Sembunyikan</option>
-                                <option value="QR Code">QR Code</option>
-                                <option value="Foto Asli">Foto Asli</option>
-                            </select>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div @click="activeModal = 'logoSekolah'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i class="fa-regular fa-image"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Logo Sekolah</h4>
+                                    <p class="text-[10px] text-slate-400">Sertakan logo instansi di header.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100" x-text="gayaCetak.logoSekolah"></span>
+                        </div>
+                        <div @click="activeModal = 'logoPemprov'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl"><i class="fa-solid fa-shield-halved"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Logo Pemprov</h4>
+                                    <p class="text-[10px] text-slate-400">Sertakan logo pemda di sisi kiri.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100" x-text="gayaCetak.logoPemprov"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ISI KUITANSI -->
+                <div class="space-y-3 pt-2">
+                    <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">ISI KUITANSI</span>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div @click="activeModal = 'tandaTangan'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between lg:col-span-2 cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-purple-50 text-purple-600 p-3 rounded-xl"><i class="fa-solid fa-signature"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Tanda Tangan Digital</h4>
+                                    <p class="text-[10px] text-slate-400">Penggunaan stempel dan ttd otomatis pada setiap kuitansi.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100" x-text="gayaCetak.tandaTangan"></span>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-rose-50 text-rose-600 p-3 rounded-xl"><i class="fa-solid fa-stamp"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Pasang Materai</h4>
+                                    <p class="text-[10px] text-slate-400">Otomatis untuk > 5 Juta.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-rose-50 text-rose-700 px-3 py-1.5 rounded-lg border border-rose-100">Aktif</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-user-tag"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Teks "Terima Dari"</h4>
+                                    <p class="text-[10px] text-slate-400">Jabatan penyerah dana.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100">Kepala Sekolah</span>
+                        </div>
+                        <div @click="activeModal = 'tempatPenerimaan'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-amber-50 text-amber-600 p-3 rounded-xl"><i class="fa-solid fa-location-dot"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Tempat Penerimaan</h4>
+                                    <p class="text-[10px] text-slate-400">Sertakan kecamatan.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg border border-amber-100" x-text="gayaCetak.tempatPenerimaan"></span>
+                        </div>
+                        <div @click="activeModal = 'labelIdentitas'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl"><i class="fa-solid fa-id-card"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Label Identitas</h4>
+                                    <p class="text-[10px] text-slate-400">Awalan nomor identitas.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-100" x-text="gayaCetak.labelIdentitas"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LAMPIRAN KUITANSI -->
+                <div class="space-y-3 pt-2">
+                    <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">LAMPIRAN KUITANSI</span>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div @click="activeModal = 'opsiLampiran'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-folder-open"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Panel Lampiran</h4>
+                                    <p class="text-[10px] text-slate-400">Menu opsi di tabel.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100" x-text="gayaCetak.opsiLampiran"></span>
+                        </div>
+                        <div @click="activeModal = 'lembarKelengkapan'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-slate-100 text-slate-700 p-3 rounded-xl"><i class="fa-solid fa-list-check"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Lembar Checklist</h4>
+                                    <p class="text-[10px] text-slate-400">Penyertaan halaman.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100" x-text="gayaCetak.lembarKelengkapan"></span>
+                        </div>
+                        <div @click="activeModal = 'detailPenerima'" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between cursor-pointer hover:bg-slate-50 transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-address-book"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Detail Penerima</h4>
+                                    <p class="text-[10px] text-slate-400">Status Rek & NPWP.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100" x-text="gayaCetak.detailPenerima"></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-blue-50 text-blue-600 p-3 rounded-xl"><i class="fa-solid fa-table-list"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Detail Barang</h4>
+                                    <p class="text-[10px] text-slate-400">Tabel barang kuitansi.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg border border-emerald-100">Aktif</span>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center justify-between border-dashed border-emerald-300 bg-emerald-50/20 lg:col-span-2 cursor-pointer hover:bg-emerald-50/40 transition" onclick="alert('Editor Lembar Checklist')">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-emerald-100 text-emerald-700 p-3 rounded-xl"><i class="fa-solid fa-pen-nib"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">Editor Lembar Checklist</h4>
+                                    <p class="text-[10px] text-slate-500">Kustomisasi daftar kelengkapan ST Kelengkapan SPJ.</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-700 underline">Edit <i class="fa-solid fa-arrow-right ml-1"></i></span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- PUSAT CETAK -->
+            <!-- ===== PUSAT CETAK ===== -->
             <div x-show="currentTab === 'pusat-cetak'" class="space-y-6" style="display: none;">
                 <div>
                     <h2 class="text-xl font-extrabold text-slate-900">Pusat Cetak</h2>
@@ -645,11 +785,11 @@
                             <p class="text-[10px] text-slate-400 mt-0.5">Tindakan cepat untuk dokumen terpilih</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <button @click="printSemuaKuitansi()" class="bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold px-4 py-2 rounded-xl transition flex items-center space-x-2 border border-white/10">
+                            <button @click="aksiSesuai('Cetak Semua')" class="bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold px-4 py-2 rounded-xl transition flex items-center space-x-2 border border-white/10">
                                 <i class="fa-solid fa-print"></i>
                                 <span>Cetak Semua</span>
                             </button>
-                            <button @click="printSemuaKuitansi()" class="bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold px-4 py-2 rounded-xl transition flex items-center space-x-2 border border-white/10">
+                            <button @click="aksiSesuai('Unduh PDF')" class="bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold px-4 py-2 rounded-xl transition flex items-center space-x-2 border border-white/10">
                                 <i class="fa-solid fa-download"></i>
                                 <span>Unduh PDF</span>
                             </button>
@@ -662,7 +802,7 @@
                 </div>
             </div>
 
-            <!-- SETELAN AKUN -->
+            <!-- ===== SETELAN AKUN ===== -->
             <div x-show="currentTab === 'setelan-akun'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Setelan Akun</h2>
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs">
@@ -672,6 +812,222 @@
 
         </main>
     </div>
+
+    <!-- ===== MODAL GAYA CETAK (10 MODAL) ===== -->
+    <!-- 1. Label Header -->
+    <div x-show="activeModal === 'labelHeader'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-heading text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">LABEL HEADER</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Pilih kata untuk judul kuitansi Anda.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Kuitansi</span><input type="radio" name="lbl" value="Kuitansi" x-model="gayaCetak.labelHeader"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Kwitansi</span><input type="radio" name="lbl" value="Kwitansi" x-model="gayaCetak.labelHeader"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Nama Sekolah</span><input type="radio" name="lbl" value="Nama Sekolah" x-model="gayaCetak.labelHeader"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Bukti Kas Pengeluaran</span><input type="radio" name="lbl" value="Bukti Kas Pengeluaran" x-model="gayaCetak.labelHeader"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Kotak No BKU -->
+    <div x-show="activeModal === 'kotakNoBku'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-hashtag text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">KOTAK NO BKU</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Latar warna kotak nomor.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Berwarna</span><input type="radio" name="bku" value="Berwarna" x-model="gayaCetak.kotakNoBku"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Transparan</span><input type="radio" name="bku" value="Transparan" x-model="gayaCetak.kotakNoBku"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Logo Sekolah -->
+    <div x-show="activeModal === 'logoSekolah'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-regular fa-image text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">LOGO SEKOLAH</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Sematkan foto profil lembaga di header.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan Logo</span><input type="radio" name="lgs" value="Tampilkan" x-model="gayaCetak.logoSekolah"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Sembunyikan</span><input type="radio" name="lgs" value="Sembunyikan" x-model="gayaCetak.logoSekolah"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Logo Pemprov -->
+    <div x-show="activeModal === 'logoPemprov'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-shield-halved text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">LOGO PEMPROV / PEMDA</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Tampilkan logo pemda di kiri kop surat.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan Logo</span><input type="radio" name="lgp" value="Tampilkan" x-model="gayaCetak.logoPemprov"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Sembunyikan</span><input type="radio" name="lgp" value="Sembunyikan" x-model="gayaCetak.logoPemprov"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Tanda Tangan Otomatis -->
+    <div x-show="activeModal === 'tandaTangan'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-signature text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">TANDATANGAN OTOMATIS</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Bentuk pengesahan kuitansi.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Sembunyikan</span><input type="radio" name="ttd" value="Sembunyikan" x-model="gayaCetak.tandaTangan"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">QR Code</span><input type="radio" name="ttd" value="QR Code" x-model="gayaCetak.tandaTangan"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Foto Asli</span><input type="radio" name="ttd" value="Foto Asli" x-model="gayaCetak.tandaTangan"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Tempat Penerimaan -->
+    <div x-show="activeModal === 'tempatPenerimaan'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-location-dot text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">TEMPAT PENERIMAAN</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Sematkan kecamatan sebelum tanggal.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan</span><input type="radio" name="tpt" value="Tampilkan" x-model="gayaCetak.tempatPenerimaan"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Sembunyikan</span><input type="radio" name="tpt" value="Sembunyikan" x-model="gayaCetak.tempatPenerimaan"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Label Identitas -->
+    <div x-show="activeModal === 'labelIdentitas'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-id-card text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">LABEL IDENTITAS</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Awalan di atas NIP penandatangan.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan NIP</span><input type="radio" name="idnt" value="Tampilkan NIP" x-model="gayaCetak.labelIdentitas"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan NUPTK</span><input type="radio" name="idnt" value="Tampilkan NUPTK" x-model="gayaCetak.labelIdentitas"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan NIY</span><input type="radio" name="idnt" value="Tampilkan NIY" x-model="gayaCetak.labelIdentitas"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Opsi Lampiran SPJ -->
+    <div x-show="activeModal === 'opsiLampiran'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-folder-open text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">OPSI LAMPIRAN SPJ</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Tampilkan menu kelengkapan dokumen pada modal Sesuaikan.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan Semua Panel</span><input type="radio" name="ops" value="Tampilkan Semua Panel" x-model="gayaCetak.opsiLampiran"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Sembunyikan Panel</span><input type="radio" name="ops" value="Sembunyikan Panel" x-model="gayaCetak.opsiLampiran"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Lembar Kelengkapan -->
+    <div x-show="activeModal === 'lembarKelengkapan'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-list-check text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">LEMBAR KELENGKAPAN</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Halaman khusus lampiran rincian SPJ.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan</span><input type="radio" name="lmb" value="Tampilkan" x-model="gayaCetak.lembarKelengkapan"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Sembunyikan</span><input type="radio" name="lmb" value="Sembunyikan" x-model="gayaCetak.lembarKelengkapan"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. Detail Penerima -->
+    <div x-show="activeModal === 'detailPenerima'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
+        <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-address-book text-slate-800"></i>
+                    <h3 class="font-extrabold text-slate-900 text-base">DETAIL PENERIMA</h3>
+                </div>
+                <button @click="activeModal = null" class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500">Status no. rekening & NPWP penerima.</p>
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Tampilkan Detail</span><input type="radio" name="dtl" value="Tampilkan Detail" x-model="gayaCetak.detailPenerima"></label>
+                    <label class="flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><span class="text-xs font-bold">Sembunyikan</span><input type="radio" name="dtl" value="Sembunyikan" x-model="gayaCetak.detailPenerima"></label>
+                </div>
+                <button @click="activeModal = null" class="w-full bg-[#0b1329] text-white py-3.5 rounded-xl font-extrabold text-sm mt-2">Simpan</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>
