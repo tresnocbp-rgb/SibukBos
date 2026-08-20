@@ -12,7 +12,6 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     </script>
     <style>
-        /* Cetak rekapitulasi */
         @media print {
             .no-print { display: none !important; }
             .print-area { margin: 0; padding: 0; border: none; box-shadow: none; }
@@ -22,16 +21,11 @@
             body { background: white !important; padding: 10px !important; }
             .sidebar, .no-print { display: none !important; }
         }
-        /* Ukuran kertas khusus untuk cetak kuitansi massal */
-        .kuitansi-page {
-            page: kuitansi;
-            font-family: Arial, sans-serif;
-            padding: 10px;
-        }
         @page kuitansi {
             size: 14cm 21.5cm;
             margin: 1cm;
         }
+        .kuitansi-page { page: kuitansi; }
     </style>
 </head>
 <body>
@@ -231,7 +225,7 @@
         window.print();
     },
 
-    // ===== CETAK KUITANSI MASSAL (UKURAN 14x21.5 cm) =====
+    // ===== CETAK KUITANSI MASSAL (ukuran 14x21.5 cm) =====
     printKuitansiMassal() {
         if (this.filteredData.length === 0) {
             alert('Tidak ada data.');
@@ -251,15 +245,23 @@
             th { background: #0b1329; color: white; }
             .page-break { page-break-after: always; }
             h2 { font-size: 14pt; }
+            .kwitansi { border: 1px solid #000; padding: 10px; margin-bottom: 10px; }
         </style>
         </head><body>
         <h2>Kuitansi Massal - ${this.tahunCetak} ${this.bulanCetak}</h2>
-        <p>Total: ${this.filteredData.length} transaksi</p>
-        <table><tr><th>No</th><th>Tanggal</th><th>Uraian</th><th>Penerimaan</th><th>Pengeluaran</th><th>Saldo</th></tr>`;
+        <p>Total: ${this.filteredData.length} transaksi</p>`;
         this.filteredData.forEach((row, idx) => {
-            html += `<tr><td>${idx+1}</td><td>${row.tanggal||'-'}</td><td>${row.uraian_transaks||row.uraian||'-'}</td><td>${row.penerimaan||'0'}</td><td>${row.pengeluaran||'0'}</td><td>${row.saldo||'0'}</td></tr>`;
+            html += `<div class="kwitansi">
+                <h3>Kuitansi #${idx+1}</h3>
+                <table><tr><td><strong>Tanggal</strong></td><td>${row.tanggal||'-'}</td></tr>
+                <tr><td><strong>Uraian</strong></td><td>${row.uraian_transaks||row.uraian||'-'}</td></tr>
+                <tr><td><strong>Penerimaan</strong></td><td>${row.penerimaan||'0'}</td></tr>
+                <tr><td><strong>Pengeluaran</strong></td><td>${row.pengeluaran||'0'}</td></tr>
+                <tr><td><strong>Saldo</strong></td><td>${row.saldo||'0'}</td></tr>
+                </table>
+            </div>`;
         });
-        html += `</table></body></html>`;
+        html += `</body></html>`;
         printWindow.document.write(html);
         printWindow.document.close();
         printWindow.focus();
@@ -317,7 +319,7 @@
     }
 }" x-init="init()">
 
-    <!-- ===== LOADING ===== -->
+    <!-- LOADING -->
     <div x-show="isLoading" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[150]" style="display: none;">
         <div class="bg-white p-6 rounded-2xl shadow-2xl flex items-center space-x-4 max-w-sm w-full mx-4">
             <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-900 border-t-transparent"></div>
@@ -328,7 +330,7 @@
         </div>
     </div>
 
-    <!-- ===== LOGIN ===== -->
+    <!-- LOGIN -->
     <div x-show="!isLoggedIn" class="flex items-center justify-center h-screen bg-slate-900" style="display: none;">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
             <div class="text-center space-y-2">
@@ -357,7 +359,7 @@
         </div>
     </div>
 
-    <!-- ===== APLIKASI UTAMA ===== -->
+    <!-- APLIKASI UTAMA -->
     <div x-show="isLoggedIn" class="flex h-screen overflow-hidden bg-[#f0f4f8] p-3 gap-3" style="display: none;">
 
         <!-- SIDEBAR -->
@@ -402,7 +404,7 @@
         <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col h-full overflow-y-auto bg-white border border-slate-200/80 rounded-3xl p-6 shadow-2xs space-y-6">
 
-            <!-- ===== BERANDA UTAMA ===== -->
+            <!-- BERANDA -->
             <div x-show="currentTab === 'beranda'" class="space-y-6">
                 <h2 class="text-xl font-extrabold text-slate-900">Beranda Utama</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -442,7 +444,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Upload BKU -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">AKSI CEPAT</h3>
@@ -522,10 +523,9 @@
                 </div>
             </div>
 
-            <!-- ===== GAYA CETAK (LENGKAP) ===== -->
+            <!-- GAYA CETAK (LENGKAP DENGAN 10 MODAL) -->
             <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak</h2>
-
                 <!-- PENGATURAN HEADER -->
                 <div class="space-y-3">
                     <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">PENGATURAN HEADER</span>
@@ -574,7 +574,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- ISI KUITANSI -->
                 <div class="space-y-3 pt-2">
                     <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">ISI KUITANSI</span>
@@ -633,7 +632,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- LAMPIRAN KUITANSI -->
                 <div class="space-y-3 pt-2">
                     <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">LAMPIRAN KUITANSI</span>
@@ -694,14 +692,13 @@
                 </div>
             </div>
 
-            <!-- ===== PUSAT CETAK ===== -->
+            <!-- PUSAT CETAK -->
             <div x-show="currentTab === 'pusat-cetak'" class="space-y-6" style="display: none;">
                 <div>
                     <h2 class="text-xl font-extrabold text-slate-900">Pusat Cetak</h2>
                     <p class="text-sm text-slate-500 mt-1">Pusat Cetak Dokumen</p>
                     <p class="text-xs text-slate-400 mt-0.5">Silakan pilih tahun dan bulan anggaran untuk memuat data rekap dan kuitansi.</p>
                 </div>
-
                 <!-- Filter -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-wrap items-center gap-4 no-print">
                     <div class="flex items-center space-x-3">
@@ -750,7 +747,6 @@
                             <span>Cetak Rekap</span>
                         </button>
                     </div>
-
                     <div class="px-6 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 no-print">
                         <div class="flex items-center space-x-3">
                             <span class="text-xs text-slate-500">Show</span>
@@ -768,7 +764,6 @@
                             <input type="text" x-model="searchQuery" placeholder="Cari..." class="border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 w-48">
                         </div>
                     </div>
-
                     <div class="overflow-x-auto p-4 print-area">
                         <template x-if="!showTable || allDataBKU.length === 0">
                             <div class="text-center py-12 text-slate-400">
@@ -887,7 +882,7 @@
                 </div>
             </div>
 
-            <!-- ===== SETELAN AKUN ===== -->
+            <!-- SETELAN AKUN -->
             <div x-show="currentTab === 'setelan-akun'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Setelan Akun</h2>
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs">
@@ -898,7 +893,7 @@
         </main>
     </div>
 
-    <!-- ===== MODAL-MODAL GAYA CETAK (10 MODAL) ===== -->
+    <!-- ===== MODAL GAYA CETAK (10 MODAL) ===== -->
     <!-- Modal 1: Label Header -->
     <div x-show="activeModal === 'labelHeader'" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4" style="display: none;">
         <div @click.away="activeModal = null" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
