@@ -22,13 +22,9 @@
         }
     </script>
     <style>
-        /* Sembunyikan elemen non-tabel saat mencetak */
         @media print {
             .no-print {
                 display: none !important;
-            }
-            .print-only {
-                display: block !important;
             }
             .print-area {
                 margin: 0 !important;
@@ -76,9 +72,14 @@
     daftarBulan: ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
     activeModal: null,
 
-    // Data BKU
-    dataBKU: [],
+    // Data BKU (dari sheet)
+    allDataBKU: [],
     showTable: false,
+    dataLoaded: false,
+
+    // Filter untuk Pusat Cetak
+    tahunCetak: '2026',
+    bulanCetak: 'Mei',
 
     // Pengaturan tampilan tabel
     showEntries: 10,
@@ -99,7 +100,7 @@
         detailPenerima: 'Sembunyikan'
     },
 
-    scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N050INvs6XtO_LwV07XsJNoiPUD6gT2wDSC8Hi77V/exec',
+    scriptUrl: 'https://script.google.com/macros/s/AKfycby3DLVK-VxNvVtQdSqAH48mT-N050INVs6XtO_LwV07XsJNoiYPUD6gT2wDSC8Hi77V/exec',
 
     // ========== LOGIN ==========
     async handleLogin() {
@@ -182,10 +183,10 @@
             }
 
             if (extractedRows.length === 0) {
-                extractedRows = [
-                    { tanggal: '01-05-2026', kodeKegiatan: '', kodeRekening: '', noBukti: '', uraian: 'Saldo Bank Bulan April 2026', penerima: 315774000, pengeluaran: 0, saldo: 315774000, bulan: this.bulanAktif, tahun: this.tahun },
-                    { tanggal: '04-05-2026', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0005', noBukti: 'BPU21', uraian: 'Isi ulang gas elpiji 12 kg', penerima: 0, pengeluaran: 245000, saldo: 315529000, bulan: this.bulanAktif, tahun: this.tahun }
-                ];
+                // Jika tidak ada data dari PDF, beri peringatan
+                alert('Tidak ada data yang diekstrak dari PDF. Pastikan format sesuai.');
+                this.isLoading = false;
+                return;
             }
 
             this.loadingText = 'Mengirim ' + extractedRows.length + ' baris data ke Google Spreadsheet...';
@@ -202,8 +203,12 @@
             });
 
             alert('SUKSES! Berhasil memproses file PDF dan mengirimkan ' + extractedRows.length + ' baris data ke Google Spreadsheet.');
+            // Reload data setelah upload
+            if (this.currentTab === 'pusat-cetak') {
+                this.loadRekapitulasi();
+            }
         } catch (error) {
-            alert('Berhasil memproses file PDF BKU ' + this.bulanAktif + ' ' + this.tahun + '!');
+            alert('Gagal memproses file PDF: ' + error.message);
         } finally {
             this.isLoading = false;
         }
@@ -212,13 +217,15 @@
     // ========== PUSAT CETAK ==========
     async loadRekapitulasi() {
         this.isLoading = true;
-        this.loadingText = 'Memuat data rekapitulasi tahun ' + this.tahun + '...';
+        this.loadingText = 'Memuat data rekapitulasi tahun ' + this.tahunCetak + ' bulan ' + this.bulanCetak + '...';
         this.showTable = false;
+        this.dataLoaded = false;
 
         try {
             let formData = new URLSearchParams();
             formData.append('action', 'get_rekapitulasi');
-            formData.append('tahun', this.tahun);
+            formData.append('tahun', this.tahunCetak);
+            formData.append('bulan', this.bulanCetak);
 
             let response = await fetch(this.scriptUrl, {
                 method: 'POST',
@@ -227,36 +234,36 @@
             });
             let res = await response.json();
 
-            if (res.status === 'success' && res.data) {
-                this.dataBKU = res.data;
+            if (res.status === 'success' && res.data && Array.isArray(res.data) && res.data.length > 0) {
+                // Data dari spreadsheet
+                this.allDataBKU = res.data.map((row, idx) => ({
+                    no: idx + 1,
+                    tanggal: row.tanggal || '',
+                    uraian: row.uraian || '',
+                    kodeKegiatan: row.kodeKegiatan || '',
+                    kodeRekening: row.kodeRekening || '',
+                    noBukti: row.noBukti || '',
+                    penerimaan: row.penerimaan || '0',
+                    pengeluaran: row.pengeluaran || '0',
+                    saldo: row.saldo || '0',
+                    bulan: row.bulan || this.bulanCetak,
+                    tahun: row.tahun || this.tahunCetak
+                }));
+                this.dataLoaded = true;
             } else {
-                // Data dummy lebih banyak
-                this.dataBKU = [
-                    { no: 1, tanggal: '01-05-2026', uraian: 'Saldo Bank Bulan April 2026', kodeKegiatan: '', kodeRekening: '', noBukti: '', penerimaan: '315.774.000', pengeluaran: '0', saldo: '315.774.000' },
-                    { no: 2, tanggal: '04-05-2026', uraian: 'Isi ulang gas elpiji 12 kg', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0005', noBukti: 'BPU21', penerimaan: '0', pengeluaran: '245.000', saldo: '315.529.000' },
-                    { no: 3, tanggal: '05-05-2026', uraian: 'Pembelian ATK Kantor', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0006', noBukti: 'BPU22', penerimaan: '0', pengeluaran: '1.200.000', saldo: '314.329.000' },
-                    { no: 4, tanggal: '07-05-2026', uraian: 'Transportasi dinas', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0007', noBukti: 'BPU23', penerimaan: '0', pengeluaran: '500.000', saldo: '313.829.000' },
-                    { no: 5, tanggal: '10-05-2026', uraian: 'Pembelian software', kodeKegiatan: '06.05.08.', kodeRekening: '5.1.02.01.02.0001', noBukti: 'BPU24', penerimaan: '0', pengeluaran: '2.500.000', saldo: '311.329.000' },
-                    { no: 6, tanggal: '12-05-2026', uraian: 'Biaya listrik', kodeKegiatan: '06.05.08.', kodeRekening: '5.1.02.01.02.0002', noBukti: 'BPU25', penerimaan: '0', pengeluaran: '850.000', saldo: '310.479.000' },
-                    { no: 7, tanggal: '15-05-2026', uraian: 'Pembelian perlengkapan kantor', kodeKegiatan: '06.05.08.', kodeRekening: '5.1.02.01.02.0003', noBukti: 'BPU26', penerimaan: '0', pengeluaran: '1.750.000', saldo: '308.729.000' },
-                    { no: 8, tanggal: '18-05-2026', uraian: 'Biaya perawatan kendaraan', kodeKegiatan: '06.05.09.', kodeRekening: '5.1.02.01.03.0001', noBukti: 'BPU27', penerimaan: '0', pengeluaran: '2.100.000', saldo: '306.629.000' },
-                    { no: 9, tanggal: '20-05-2026', uraian: 'Pembelian bahan habis pakai', kodeKegiatan: '06.05.09.', kodeRekening: '5.1.02.01.03.0002', noBukti: 'BPU28', penerimaan: '0', pengeluaran: '620.000', saldo: '306.009.000' },
-                    { no: 10, tanggal: '22-05-2026', uraian: 'Biaya makan minum rapat', kodeKegiatan: '06.05.09.', kodeRekening: '5.1.02.01.03.0003', noBukti: 'BPU29', penerimaan: '0', pengeluaran: '350.000', saldo: '305.659.000' },
-                    { no: 11, tanggal: '25-05-2026', uraian: 'Pembelian hadiah', kodeKegiatan: '06.05.10.', kodeRekening: '5.1.02.01.04.0001', noBukti: 'BPU30', penerimaan: '0', pengeluaran: '900.000', saldo: '304.759.000' },
-                    { no: 12, tanggal: '28-05-2026', uraian: 'Biaya pengiriman dokumen', kodeKegiatan: '06.05.10.', kodeRekening: '5.1.02.01.04.0002', noBukti: 'BPU31', penerimaan: '0', pengeluaran: '150.000', saldo: '304.609.000' },
-                ];
+                // Tidak ada data dari spreadsheet
+                this.allDataBKU = [];
+                this.dataLoaded = false;
+                // Tampilkan pesan kosong, tidak pakai dummy
             }
             this.showTable = true;
             this.currentPage = 1;
             this.searchQuery = '';
         } catch (e) {
-            // Data dummy jika error
-            this.dataBKU = [
-                { no: 1, tanggal: '01-05-2026', uraian: 'Saldo Bank Bulan April 2026', kodeKegiatan: '', kodeRekening: '', noBukti: '', penerimaan: '315.774.000', pengeluaran: '0', saldo: '315.774.000' },
-                { no: 2, tanggal: '04-05-2026', uraian: 'Isi ulang gas elpiji 12 kg', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0005', noBukti: 'BPU21', penerimaan: '0', pengeluaran: '245.000', saldo: '315.529.000' },
-                { no: 3, tanggal: '05-05-2026', uraian: 'Pembelian ATK Kantor', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0006', noBukti: 'BPU22', penerimaan: '0', pengeluaran: '1.200.000', saldo: '314.329.000' },
-                { no: 4, tanggal: '07-05-2026', uraian: 'Transportasi dinas', kodeKegiatan: '06.05.07.', kodeRekening: '5.1.02.01.01.0007', noBukti: 'BPU23', penerimaan: '0', pengeluaran: '500.000', saldo: '313.829.000' },
-            ];
+            console.error('Error loading data:', e);
+            // Jika error, tampilkan pesan error
+            this.allDataBKU = [];
+            this.dataLoaded = false;
             this.showTable = true;
             this.currentPage = 1;
             this.searchQuery = '';
@@ -265,10 +272,29 @@
         }
     },
 
-    // Filter dan paginasi
+    // Filter dan paginasi (berdasarkan bulan yang dipilih)
     get filteredData() {
-        if (!this.searchQuery) return this.dataBKU;
-        return this.dataBKU.filter(row =>
+        let data = this.allDataBKU;
+        // filter berdasarkan bulan (jika ada properti bulan di data)
+        if (this.bulanCetak) {
+            data = data.filter(row => {
+                // coba cek properti bulan
+                if (row.bulan) return row.bulan === this.bulanCetak;
+                // jika tidak, coba dari tanggal (asumsi format DD-MM-YYYY)
+                if (row.tanggal) {
+                    const parts = row.tanggal.split('-');
+                    if (parts.length === 3) {
+                        const bulanAngka = parseInt(parts[1]);
+                        const mapBulan = { 'Feb': 2, 'Mar': 3, 'Apr': 4, 'Mei': 5, 'Jun': 6, 'Jul': 7, 'Ags': 8, 'Sep': 9, 'Okt': 10, 'Nov': 11, 'Des': 12 };
+                        return mapBulan[this.bulanCetak] === bulanAngka;
+                    }
+                }
+                return true;
+            });
+        }
+        // filter pencarian
+        if (!this.searchQuery) return data;
+        return data.filter(row =>
             Object.values(row).some(val =>
                 String(val).toLowerCase().includes(this.searchQuery.toLowerCase())
             )
@@ -293,7 +319,6 @@
 
     // Cetak Rekapitulasi (hanya tabel)
     printRekapitulasi() {
-        // Sembunyikan elemen yang tidak perlu saat print
         window.print();
     },
 
@@ -303,10 +328,8 @@
             alert('Tidak ada data untuk dicetak. Silakan muat data terlebih dahulu.');
             return;
         }
-        // Simulasi generate SPJ
         const total = this.filteredData.length;
-        alert('Generate SPJ untuk ' + total + ' transaksi tahun ' + this.tahun + '.\nFitur ini akan menghasilkan dokumen lengkap dengan rincian dan lampiran.');
-        // Di sini nanti diimplementasikan generate PDF massal
+        alert('Generate SPJ untuk ' + total + ' transaksi tahun ' + this.tahunCetak + ' bulan ' + this.bulanCetak + '.\nFitur ini akan menghasilkan dokumen lengkap dengan rincian dan lampiran.');
     },
 
     // Aksi Sesuai
@@ -315,12 +338,13 @@
             alert('Tidak ada data yang dipilih. Silakan muat data terlebih dahulu.');
             return;
         }
+        const total = this.filteredData.length;
         if (action === 'Cetak Semua') {
-            alert('Cetak semua dokumen untuk ' + this.filteredData.length + ' transaksi.');
+            alert('Cetak semua dokumen untuk ' + total + ' transaksi.');
         } else if (action === 'Unduh PDF') {
-            alert('Mengunduh PDF untuk ' + this.filteredData.length + ' transaksi.');
+            alert('Mengunduh PDF untuk ' + total + ' transaksi.');
         } else if (action === 'Kirim Email') {
-            alert('Mengirim email untuk ' + this.filteredData.length + ' transaksi.');
+            alert('Mengirim email untuk ' + total + ' transaksi.');
         } else {
             alert('Aksi: ' + action);
         }
@@ -755,24 +779,40 @@
                 <div>
                     <h2 class="text-xl font-extrabold text-slate-900">Pusat Cetak</h2>
                     <p class="text-sm text-slate-500 mt-1">Pusat Cetak Dokumen</p>
-                    <p class="text-xs text-slate-400 mt-0.5">Silakan pilih tahun anggaran untuk memuat data rekap dan kuitansi.</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Silakan pilih tahun dan bulan anggaran untuk memuat data rekap dan kuitansi.</p>
                 </div>
 
-                <!-- PEMILIH TAHUN + MUAT DATA -->
+                <!-- PEMILIH TAHUN & BULAN + MUAT DATA -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-wrap items-center gap-4 no-print">
                     <div class="flex items-center space-x-3">
-                        <span class="text-xs font-bold text-slate-600">Tahun Anggaran</span>
-                        <select x-model="tahun" @change="loadRekapitulasi()" class="border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="text-xs font-bold text-slate-600">Tahun</span>
+                        <select x-model="tahunCetak" @change="loadRekapitulasi()" class="border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="2026">2026</option>
                             <option value="2025">2025</option>
                             <option value="2024">2024</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs font-bold text-slate-600">Bulan</span>
+                        <select x-model="bulanCetak" @change="loadRekapitulasi()" class="border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Feb">Feb</option>
+                            <option value="Mar">Mar</option>
+                            <option value="Apr">Apr</option>
+                            <option value="Mei">Mei</option>
+                            <option value="Jun">Jun</option>
+                            <option value="Jul">Jul</option>
+                            <option value="Ags">Ags</option>
+                            <option value="Sep">Sep</option>
+                            <option value="Okt">Okt</option>
+                            <option value="Nov">Nov</option>
+                            <option value="Des">Des</option>
                         </select>
                     </div>
                     <button @click="loadRekapitulasi()" class="bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm flex items-center space-x-2">
                         <i class="fa-solid fa-rotate"></i>
                         <span>Muat Data</span>
                     </button>
-                    <span class="text-[10px] text-slate-400 ml-auto" x-text="showTable ? dataBKU.length + ' baris dimuat' : 'Belum ada data'"></span>
+                    <span class="text-[10px] text-slate-400 ml-auto" x-text="showTable ? allDataBKU.length + ' baris dimuat' : 'Belum ada data'"></span>
                 </div>
 
                 <!-- 3A. CETAK REKAPITULASI -->
@@ -812,15 +852,15 @@
 
                     <!-- TABEL -->
                     <div class="overflow-x-auto p-4 print-area">
-                        <template x-if="!showTable || dataBKU.length === 0">
+                        <template x-if="!showTable || allDataBKU.length === 0">
                             <div class="text-center py-12 text-slate-400">
                                 <i class="fa-regular fa-file-lines text-4xl block mb-3"></i>
-                                <p class="text-sm font-semibold">Silakan pilih tahun terlebih dahulu...</p>
-                                <p class="text-xs mt-1">Klik tombol "Muat Data" untuk menampilkan rekapitulasi</p>
+                                <p class="text-sm font-semibold" x-text="dataLoaded ? 'Tidak ada data untuk periode ini.' : 'Silakan pilih tahun dan bulan terlebih dahulu...'"></p>
+                                <p class="text-xs mt-1" x-text="dataLoaded ? 'Upload BKU terlebih dahulu atau pilih periode lain.' : 'Klik tombol \"Muat Data\" untuk menampilkan rekapitulasi'"></p>
                             </div>
                         </template>
 
-                        <template x-if="showTable && dataBKU.length > 0">
+                        <template x-if="showTable && allDataBKU.length > 0">
                             <div>
                                 <table class="w-full text-xs border-collapse">
                                     <thead>
@@ -885,19 +925,21 @@
                         </button>
                     </div>
 
-                    <template x-if="!showTable || dataBKU.length === 0">
+                    <template x-if="!showTable || allDataBKU.length === 0">
                         <div class="mt-4 text-center py-6 text-slate-400 border border-dashed border-slate-200 rounded-xl">
                             <i class="fa-regular fa-hourglass-half text-2xl block mb-2"></i>
-                            <p class="text-xs font-semibold">Silakan pilih tahun terlebih dahulu...</p>
+                            <p class="text-xs font-semibold" x-text="dataLoaded ? 'Belum ada transaksi untuk periode ini.' : 'Silakan pilih tahun dan bulan terlebih dahulu...'"></p>
                         </div>
                     </template>
 
-                    <template x-if="showTable && dataBKU.length > 0">
+                    <template x-if="showTable && allDataBKU.length > 0">
                         <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500 bg-slate-50/70 rounded-xl px-4 py-3 border border-slate-100">
                             <i class="fa-regular fa-circle-check text-emerald-500"></i>
                             <span><span class="font-bold text-slate-700" x-text="filteredData.length"></span> transaksi siap dicetak</span>
                             <span class="w-px h-4 bg-slate-200"></span>
-                            <span>Tahun <span class="font-bold text-slate-700" x-text="tahun"></span></span>
+                            <span>Tahun <span class="font-bold text-slate-700" x-text="tahunCetak"></span></span>
+                            <span class="w-px h-4 bg-slate-200"></span>
+                            <span>Bulan <span class="font-bold text-slate-700" x-text="bulanCetak"></span></span>
                             <span class="w-px h-4 bg-slate-200"></span>
                             <span class="text-emerald-600 font-bold">✓ Data lengkap</span>
                         </div>
