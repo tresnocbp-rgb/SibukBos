@@ -21,11 +21,6 @@
             body { background: white !important; padding: 10px !important; }
             .sidebar, .no-print { display: none !important; }
         }
-        @page kuitansi {
-            size: 14cm 21.5cm;
-            margin: 1cm;
-        }
-        .kuitansi-page { page: kuitansi; }
     </style>
 </head>
 <body>
@@ -49,7 +44,6 @@
     showEntries: 10,
     searchQuery: '',
     currentPage: 1,
-    emailRecipient: '',
     emailSubject: 'Laporan SPJ',
     gayaCetak: {
         labelHeader: 'Kuitansi',
@@ -225,56 +219,7 @@
         window.print();
     },
 
-    // ===== CETAK KUITANSI MASSAL (ukuran 14x21.5 cm) - DIPERBAIKI =====
-    printKuitansiMassal() {
-        if (this.filteredData.length === 0) {
-            alert('Tidak ada data.');
-            return;
-        }
-        let printWindow = window.open('', '_blank', 'width=800,height=600');
-        if (!printWindow) {
-            alert('Izinkan popup.');
-            return;
-        }
-        // Buat HTML untuk cetak
-        let html = `<html><head><title>Kuitansi Massal</title>
-        <style>
-            @page { size: 14cm 21.5cm; margin: 1cm; }
-            body { font-family: Arial, sans-serif; padding: 10px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-            th, td { border: 1px solid #000; padding: 6px; text-align: left; font-size: 10pt; }
-            th { background: #0b1329; color: white; }
-            .page-break { page-break-after: always; }
-            h2 { font-size: 14pt; }
-            .kwitansi { border: 1px solid #000; padding: 10px; margin-bottom: 10px; }
-        </style>
-        </head><body>
-        <h2>Kuitansi Massal - ${this.tahunCetak} ${this.bulanCetak}</h2>
-        <p>Total: ${this.filteredData.length} transaksi</p>`;
-
-        // Loop data untuk membuat setiap kwitansi
-        this.filteredData.forEach((row, idx) => {
-            html += `<div class="kwitansi">
-                <h3>Kuitansi #${idx+1}</h3>
-                <table>
-                    <tr><td><strong>Tanggal</strong></td><td>${row.tanggal || '-'}</td></tr>
-                    <tr><td><strong>Uraian</strong></td><td>${row.uraian_transaks || row.uraian || '-'}</td></tr>
-                    <tr><td><strong>Penerimaan</strong></td><td>${row.penerimaan || '0'}</td></tr>
-                    <tr><td><strong>Pengeluaran</strong></td><td>${row.pengeluaran || '0'}</td></tr>
-                    <tr><td><strong>Saldo</strong></td><td>${row.saldo || '0'}</td></tr>
-                </table>
-            </div>`;
-        });
-
-        html += `</body></html>`;
-
-        printWindow.document.write(html);
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
-    },
-
-    // ===== AKSI SESUAI =====
+    // ===== AKSI SESUAI (SEDERHANA) =====
     aksiSesuai(action) {
         if (this.filteredData.length === 0) {
             alert('Tidak ada data.');
@@ -320,11 +265,8 @@
         }
     },
 
-    // ===== INISIALISASI =====
     init() {
-        if (this.currentTab === 'pusat-cetak') {
-            this.loadRekapitulasi();
-        }
+        if (this.currentTab === 'pusat-cetak') this.loadRekapitulasi();
     }
 }" x-init="init()">
 
@@ -532,13 +474,11 @@
                 </div>
             </div>
 
-            <!-- GAYA CETAK (LENGKAP) - DIPERSINGKAT UNTUK KEPRAKTISAN, TAPI TETAP ADA -->
+            <!-- GAYA CETAK -->
             <div x-show="currentTab === 'gaya-cetak'" class="space-y-6" style="display: none;">
                 <h2 class="text-xl font-extrabold text-slate-900">Gaya Cetak</h2>
-                <p class="text-sm text-slate-500">Pengaturan gaya cetak (Header, Tanda Tangan, dll.) – buka modal dengan mengklik opsi di bawah.</p>
-                <!-- Di sini bisa ditambahkan 10 modal seperti sebelumnya, tetapi untuk menghemat tempat saya singkatkan -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs">
-                    <p class="text-sm text-slate-500">(Detail menu Gaya Cetak dapat ditambahkan kembali sesuai kebutuhan)</p>
+                    <p class="text-sm text-slate-500">Pengaturan gaya cetak (Header, Tanda Tangan, dll.)</p>
                 </div>
             </div>
 
@@ -549,6 +489,7 @@
                     <p class="text-sm text-slate-500 mt-1">Pusat Cetak Dokumen</p>
                     <p class="text-xs text-slate-400 mt-0.5">Silakan pilih tahun dan bulan anggaran untuk memuat data rekap dan kuitansi.</p>
                 </div>
+
                 <!-- Filter -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-wrap items-center gap-4 no-print">
                     <div class="flex items-center space-x-3">
@@ -667,41 +608,6 @@
                             </div>
                         </template>
                     </div>
-                </div>
-
-                <!-- CETAK KUITANSI MASSAL -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl shadow-2xs p-6 no-print">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h3 class="font-extrabold text-slate-800 text-sm flex items-center space-x-2">
-                                <i class="fa-solid fa-file-pdf text-rose-600"></i>
-                                <span>Cetak Kuitansi Massal</span>
-                            </h3>
-                            <p class="text-xs text-slate-400 mt-1">Generate SPJ lengkap dengan rincian dan lampirannya.</p>
-                        </div>
-                        <button @click="printKuitansiMassal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm flex items-center space-x-2">
-                            <i class="fa-solid fa-file-pdf"></i>
-                            <span>Generate SPJ</span>
-                        </button>
-                    </div>
-                    <template x-if="!showTable || allDataBKU.length === 0">
-                        <div class="mt-4 text-center py-6 text-slate-400 border border-dashed border-slate-200 rounded-xl">
-                            <i class="fa-regular fa-hourglass-half text-2xl block mb-2"></i>
-                            <p class="text-xs font-semibold" x-text="dataLoaded ? 'Belum ada transaksi untuk periode ini.' : 'Silakan pilih tahun dan bulan terlebih dahulu...'"></p>
-                        </div>
-                    </template>
-                    <template x-if="showTable && allDataBKU.length > 0">
-                        <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500 bg-slate-50/70 rounded-xl px-4 py-3 border border-slate-100">
-                            <i class="fa-regular fa-circle-check text-emerald-500"></i>
-                            <span><span class="font-bold text-slate-700" x-text="filteredData.length"></span> transaksi siap dicetak</span>
-                            <span class="w-px h-4 bg-slate-200"></span>
-                            <span>Tahun <span class="font-bold text-slate-700" x-text="tahunCetak"></span></span>
-                            <span class="w-px h-4 bg-slate-200"></span>
-                            <span>Bulan <span class="font-bold text-slate-700" x-text="bulanCetak"></span></span>
-                            <span class="w-px h-4 bg-slate-200"></span>
-                            <span class="text-emerald-600 font-bold">✓ Data lengkap</span>
-                        </div>
-                    </template>
                 </div>
 
                 <!-- AKSI SESUAI -->
